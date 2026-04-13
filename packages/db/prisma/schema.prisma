@@ -1,0 +1,48 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id Int @id @default(autoincrement())
+
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+
+  firstName   String
+  lastName    String
+  permissions BigInt
+
+  roleAssignments UserRoleAssignment[]
+
+  password String
+}
+
+//////////////////////////////////////////////////
+// USERS + ROLES
+//////////////////////////////////////////////////
+
+model UserRole {
+  id          Int    @id @default(autoincrement())
+  name        String
+  permissions BigInt
+
+  assignments UserRoleAssignment[]
+}
+
+model UserRoleAssignment {
+  userId     Int
+  userRoleId Int
+
+  user     User     @relation(fields: [userId], references: [id])
+  userRole UserRole @relation(fields: [userRoleId], references: [id])
+
+  @@id([userId, userRoleId])
+}

@@ -1,0 +1,10 @@
+.env
+.env.*
+
+# include example env files
+!.env.example
+
+.DS_Store
+
+node_modules/
+.turbo/

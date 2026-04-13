@@ -1,0 +1,20 @@
+{
+  "name": "fm-fullstack-template",
+  "scripts": {
+    "backend:build": "turbo --filter=@repo/server build",
+    "backend:start": "pnpm --filter=@repo/server start",
+    "web:build": "turbo --filter=@repo/web build",
+    "web:dev": "pnpm --filter=@repo/web dev",
+    "web:preview": "pnpm --filter=@repo/web preview",
+    "build": "turbo build",
+    "dev": "turbo dev"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "dotenv": "^17.3.1",
+    "prettier": "^3.8.1",
+    "turbo": "^2.8.21",
+    "typescript": "^6.0.2"
+  },
+  "packageManager": "pnpm@10.25.0"
+}

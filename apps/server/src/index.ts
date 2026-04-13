@@ -1,0 +1,29 @@
+import 'dotenv/config';
+
+import express from 'express';
+
+import { trpcExpress } from '@repo/trpc';
+import { pwaRouter } from './router/pwa';
+
+import cors from 'cors';
+
+const app = express();
+
+app.use(
+  cors({
+    origin: '*'
+  })
+);
+
+app.use('/health', (_, res) => {
+  return res.json({ status: 'OK' });
+});
+
+app.use('/pwa', pwaRouter);
+app.use('/trpc', trpcExpress);
+
+const port = process.env.PORT || 3000;
+
+app.listen(port, () => {
+  console.log(`Listening on port ${port}`);
+});
