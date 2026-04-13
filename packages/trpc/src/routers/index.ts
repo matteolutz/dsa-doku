@@ -1,5 +1,6 @@
 import { procedure, router } from '..';
 import { authRouter } from './auth';
+import { docRouter } from './doc';
 import { userRouter } from './user';
 
 export const appRouter = router({
@@ -7,7 +8,8 @@ export const appRouter = router({
     return { status: 'ok' };
   }),
   auth: authRouter,
-  user: userRouter
+  user: userRouter,
+  doc: docRouter
 });
 
 export type AppRouter = typeof appRouter;

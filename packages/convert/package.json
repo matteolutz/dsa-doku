@@ -1,5 +1,5 @@
 {
-  "name": "@repo/trpc",
+  "name": "@repo/convert",
   "private": true,
   "version": "1.0.0",
   "description": "",
@@ -12,13 +12,11 @@
   "license": "ISC",
   "packageManager": "pnpm@10.25.0",
   "dependencies": {
-    "@repo/convert": "workspace:*",
-    "@repo/db": "workspace:*",
-    "@trpc/server": "^11.16.0",
-    "bcrypt": "^6.0.0",
-    "jsonwebtoken": "^9.0.3",
-    "superjson": "^2.2.6",
-    "zod": "^4.3.6"
+    "glob": "^13.0.6",
+    "jszip": "^3.10.1",
+    "mime": "^4.1.0",
+    "xmldom": "^0.6.0",
+    "xpath": "^0.0.34"
   },
   "exports": {
     ".": {
@@ -27,8 +25,6 @@
     }
   },
   "devDependencies": {
-    "@types/bcrypt": "^6.0.0",
-    "@types/express": "^5.0.6",
-    "@types/jsonwebtoken": "^9.0.10"
+    "@types/xmldom": "^0.1.34"
   }
 }

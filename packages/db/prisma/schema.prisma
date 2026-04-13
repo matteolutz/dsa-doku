@@ -46,3 +46,47 @@ model UserRoleAssignment {
 
   @@id([userId, userRoleId])
 }
+
+model Academy {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  yearIdx Int
+  courses Course[]
+}
+
+model Course {
+  id Int @id @default(autoincrement())
+
+  academyId Int
+  academy   Academy @relation(fields: [academyId], references: [id])
+
+  title    String
+  subtitle String
+
+  courseIdx         Int
+  uploadedDocuments UploadedDocument[]
+}
+
+model UploadedDocument {
+  id Int @id @default(autoincrement())
+
+  courseId Int
+  course   Course @relation(fields: [courseId], references: [id])
+
+  filePath String
+
+  orderIdx       Int
+  convertedPages ConvertedPage[]
+}
+
+model ConvertedPage {
+  id Int @id @default(autoincrement())
+
+  documentId Int
+  document   UploadedDocument @relation(fields: [documentId], references: [id])
+
+  pageIdx Int
+
+  html String
+}
