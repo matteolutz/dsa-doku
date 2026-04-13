@@ -10,6 +10,7 @@ export type BottomNavItem = {
   label: string;
   icon: IconSvgElement;
   value: string;
+  disabled?: boolean;
 };
 
 export type BottomNavProps = {
@@ -36,9 +37,13 @@ export const BottomNav: FC<BottomNavProps> = ({
 
           return (
             <button
+              disabled={item.disabled}
               key={item.value}
               onClick={() => onActiveTabChange(item.value)}
-              className="relative flex flex-col items-center gap-1 py-2 transition-colors"
+              className={cn(
+                'relative flex flex-col items-center gap-1 py-2 transition-colors',
+                item.disabled && 'opacity-50 cursor-not-allowed'
+              )}
             >
               {/* ✅ Animated Indicator */}
               {isActive && (

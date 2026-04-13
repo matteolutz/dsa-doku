@@ -5,8 +5,8 @@ export * from '@prisma/client';
 export type SafeUser = Prisma.UserGetPayload<{ omit: { password: true } }>;
 
 export {
-  UserRolePermissionFlags,
   UserPermissionFlags,
   hasPermission,
+  getPermissionsForRole,
   isPermissionFlagSet
 } from './permissions';

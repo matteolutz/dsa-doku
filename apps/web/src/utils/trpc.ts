@@ -16,11 +16,11 @@ export type RouterInput = inferRouterInputs<AppRouter>;
 export type RouterOutput = inferRouterOutputs<AppRouter>;
 
 export type LoggedInState = {
-  selectedEventInstance: number | null;
+  selectedAcademy: number | null;
 };
 
 const DEFAULT_LOGGED_IN_STATE: LoggedInState = {
-  selectedEventInstance: null
+  selectedAcademy: null
 };
 
 export type AuthState =
@@ -52,7 +52,10 @@ export type AuthContextState = {
     refreshing
   }: {
     loggedOut?: () => T;
-    loggedIn?: (tokens: { accessToken: string; refreshToken: string }) => T;
+    loggedIn?: (
+      tokens: { accessToken: string; refreshToken: string },
+      data: LoggedInState
+    ) => T;
     refreshing?: (refreshToken: string) => T;
   }) => T | null;
 
@@ -170,10 +173,13 @@ export function createAuthClient({ url }: { url: string }) {
           refreshing
         }: {
           loggedOut?: () => T;
-          loggedIn?: (tokens: {
-            accessToken: string;
-            refreshToken: string;
-          }) => T;
+          loggedIn?: (
+            tokens: {
+              accessToken: string;
+              refreshToken: string;
+            },
+            data: LoggedInState
+          ) => T;
           refreshing?: (refreshToken: string) => T;
         }): T | null => {
           const authState: AuthState = get().state;
@@ -182,7 +188,7 @@ export function createAuthClient({ url }: { url: string }) {
             case 'logged-out':
               return loggedOut?.() ?? null;
             case 'logged-in':
-              return loggedIn?.(authState) ?? null;
+              return loggedIn?.(authState, authState.data) ?? null;
             case 'refreshing':
               return refreshing?.(authState.refreshToken) ?? null;
           }
@@ -245,7 +251,10 @@ export const trpc = createTRPCOptionsProxy<AppRouter>({
 
 export { useAuthStore };
 
-export const useLoggedInState = () => {
+export const useLoggedInState = (): [
+  LoggedInState,
+  typeof authState.setLoggedInState
+] => {
   const authState = useAuthStore();
 
   if (authState.state.state === 'logged-out')

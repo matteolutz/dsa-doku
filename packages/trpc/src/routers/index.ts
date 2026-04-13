@@ -1,4 +1,5 @@
 import { procedure, router } from '..';
+import { academyRouter } from './academy';
 import { authRouter } from './auth';
 import { docRouter } from './doc';
 import { userRouter } from './user';
@@ -9,6 +10,7 @@ export const appRouter = router({
   }),
   auth: authRouter,
   user: userRouter,
+  academy: academyRouter,
   doc: docRouter
 });
 

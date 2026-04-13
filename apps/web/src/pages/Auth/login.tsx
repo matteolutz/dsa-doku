@@ -38,9 +38,9 @@ const LoginPage = () => {
     <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle className="text-2xl">Sign in</CardTitle>
+          <CardTitle className="text-2xl">Anmelden</CardTitle>
           <CardDescription>
-            Enter your credentials to access the festival manager.
+            Melde Dich an, um auf die Dokumentation deiner Akademie zuzugreifen
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -49,7 +49,7 @@ const LoginPage = () => {
             className="grid gap-4"
           >
             <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">E-Mail</Label>
               <Input
                 id="email"
                 type="email"
@@ -61,12 +61,12 @@ const LoginPage = () => {
             </div>
             <div className="grid gap-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Passwort</Label>
                 <Link
                   to="#"
                   className="text-sm text-muted-foreground underline-offset-4 hover:underline"
                 >
-                  Forgot password?
+                  Passwort vergessen?
                 </Link>
               </div>
               <Input
@@ -82,18 +82,18 @@ const LoginPage = () => {
               type="submit"
               className="w-full"
             >
-              Sign In
+              Anmelden
               {loginMutation.isPending && <Spinner data-icon="inline-start" />}
             </Button>
           </form>
         </CardContent>
         <CardFooter className="justify-center text-sm text-muted-foreground">
-          Don&apos;t have an account?&nbsp;
+          Du hast noch keinen Account?&nbsp;
           <Link
             to="../register"
             className="font-medium text-foreground underline-offset-4 hover:underline"
           >
-            Register
+            Registrieren
           </Link>
         </CardFooter>
       </Card>

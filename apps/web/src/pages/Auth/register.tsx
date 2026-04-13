@@ -16,6 +16,7 @@ import { useMutation } from '@tanstack/react-query';
 import { Spinner } from '@/components/ui/spinner';
 
 type FormInputs = {
+  registrationCode: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -41,9 +42,9 @@ const RegisterPage = () => {
     <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle className="text-2xl">Create account</CardTitle>
+          <CardTitle className="text-2xl">Account erstellen</CardTitle>
           <CardDescription>
-            Sign up to start managing your festivals.
+            Erstelle einen neuen Account mit einem Registrierungscode
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -52,40 +53,51 @@ const RegisterPage = () => {
             className="grid gap-4"
           >
             <div className="grid gap-2">
-              <Label htmlFor="firstName">First Name</Label>
+              <Label htmlFor="registrationCode">Registrierungscode</Label>
+              <Input
+                id="registrationCode"
+                type="text"
+                placeholder="Registrierungscode eingeben"
+                required
+                autoComplete="name"
+                {...registerForm.register('registrationCode')}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="firstName">Vorname</Label>
               <Input
                 id="firstName"
                 type="text"
-                placeholder="Jane"
+                placeholder="Hartmut"
                 required
                 autoComplete="name"
                 {...registerForm.register('firstName')}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="lastName">Last Name</Label>
+              <Label htmlFor="lastName">Nachname</Label>
               <Input
                 id="lastName"
                 type="text"
-                placeholder="Smith"
+                placeholder="Rosa"
                 required
                 autoComplete="name"
                 {...registerForm.register('lastName')}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">E-Mail</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder="du@beispiel.de"
                 required
                 autoComplete="email"
                 {...registerForm.register('email')}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Passwort</Label>
               <Input
                 id="password"
                 type="password"
@@ -95,7 +107,7 @@ const RegisterPage = () => {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="confirmPassword">Confirm password</Label>
+              <Label htmlFor="confirmPassword">Passwort bestätigen</Label>
               <Input
                 id="confirmPassword"
                 type="password"
@@ -109,7 +121,7 @@ const RegisterPage = () => {
               type="submit"
               className="w-full"
             >
-              Create account
+              Registrieren
               {registerMutation.isPending && (
                 <Spinner data-icon="inline-start" />
               )}
@@ -117,12 +129,12 @@ const RegisterPage = () => {
           </form>
         </CardContent>
         <CardFooter className="justify-center text-sm text-muted-foreground">
-          Already have an account?&nbsp;
+          Du hast bereits einen Account?&nbsp;
           <Link
             to="../login"
             className="font-medium text-foreground underline-offset-4 hover:underline"
           >
-            Sign in
+            Anmelden
           </Link>
         </CardFooter>
       </Card>

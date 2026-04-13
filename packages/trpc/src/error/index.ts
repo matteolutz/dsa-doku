@@ -7,9 +7,11 @@ export type FMErrorType =
         | 'invalid-auth-header'
         | 'invalid-jwt'
         | 'invalid-token-type'
+        | 'invalid-password'
         | 'jwt-expired'
         | 'unknown-user'
-        | 'insufficient-permissions';
+        | 'insufficient-permissions'
+        | 'invalid-registration-code';
     }
   | {
       type: 'passwords-dont-match';

@@ -9,6 +9,13 @@ datasource db {
   provider = "postgresql"
 }
 
+enum UserRole {
+  ADMIN
+  AL
+  KL
+  TN
+}
+
 model User {
   id Int @id @default(autoincrement())
 
@@ -20,39 +27,49 @@ model User {
   lastName    String
   permissions BigInt
 
-  roleAssignments UserRoleAssignment[]
+  userRole UserRole
 
-  password String
+  password          String
+  registrationCodes RegistrationCode[]
+
+  courseParticipations CourseParticipation[]
+  academyALs           AcademyAL[]
 }
 
-//////////////////////////////////////////////////
-// USERS + ROLES
-//////////////////////////////////////////////////
+model RegistrationCode {
+  code String @unique
 
-model UserRole {
-  id          Int    @id @default(autoincrement())
-  name        String
-  permissions BigInt
+  userRole UserRole
+  courseId Int?
 
-  assignments UserRoleAssignment[]
-}
+  allowReuse Boolean
 
-model UserRoleAssignment {
-  userId     Int
-  userRoleId Int
-
-  user     User     @relation(fields: [userId], references: [id])
-  userRole UserRole @relation(fields: [userRoleId], references: [id])
-
-  @@id([userId, userRoleId])
+  usedById Int?
+  usedBy   User? @relation(fields: [usedById], references: [id])
 }
 
 model Academy {
-  id   Int    @id @default(autoincrement())
-  name String
+  id       Int    @id @default(autoincrement())
+  location String
 
+  year    Int
   yearIdx Int
-  courses Course[]
+
+  courses    Course[]
+  academyALs AcademyAL[]
+
+  @@unique([year, yearIdx])
+  @@unique([location, year])
+}
+
+model AcademyAL {
+  academyId Int
+  academy   Academy @relation(fields: [academyId], references: [id])
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  @@id([academyId, userId])
 }
 
 model Course {
@@ -64,11 +81,23 @@ model Course {
   title    String
   subtitle String
 
-  courseIdx         Int
-  uploadedDocuments UploadedDocument[]
+  courseIdx       Int
+  courseDocuments CourseDocument[]
+
+  courseParticipations CourseParticipation[]
 }
 
-model UploadedDocument {
+model CourseParticipation {
+  courseId Int
+  course   Course @relation(fields: [courseId], references: [id])
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  @@id([courseId, userId])
+}
+
+model CourseDocument {
   id Int @id @default(autoincrement())
 
   courseId Int
@@ -76,17 +105,6 @@ model UploadedDocument {
 
   filePath String
 
-  orderIdx       Int
-  convertedPages ConvertedPage[]
-}
-
-model ConvertedPage {
-  id Int @id @default(autoincrement())
-
-  documentId Int
-  document   UploadedDocument @relation(fields: [documentId], references: [id])
-
-  pageIdx Int
-
-  html String
+  orderIdx               Int
+  numberOfConvertedPages Int
 }
