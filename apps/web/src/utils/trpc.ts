@@ -262,3 +262,11 @@ export const useLoggedInState = (): [
 
   return [authState.state.data, authState.setLoggedInState];
 };
+
+export const useSelectedAcademy = () => {
+  const [loggedInState] = useLoggedInState();
+  if (loggedInState.selectedAcademy === null)
+    throw new Error('No academy selected');
+
+  return loggedInState.selectedAcademy;
+};

@@ -100,10 +100,13 @@ model CourseParticipation {
 model CourseDocument {
   id Int @id @default(autoincrement())
 
+  name String
+
   courseId Int
   course   Course @relation(fields: [courseId], references: [id])
 
-  filePath String
+  docId            String
+  originalFileName String
 
   orderIdx               Int
   numberOfConvertedPages Int

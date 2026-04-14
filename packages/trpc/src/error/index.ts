@@ -15,6 +15,11 @@ export type FMErrorType =
     }
   | {
       type: 'passwords-dont-match';
+    }
+  | {
+      type: 'resource-not-found';
+      resource: 'course';
+      id: string | number;
     };
 
 export class FMError extends Error {
@@ -30,6 +35,9 @@ export class FMError extends Error {
         break;
       case 'passwords-dont-match':
         code = 'BAD_REQUEST';
+        break;
+      case 'resource-not-found':
+        code = 'NOT_FOUND';
         break;
     }
 

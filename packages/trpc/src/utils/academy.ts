@@ -1,14 +1,33 @@
-import { hasPermission, SafeUser, UserRole } from '@repo/db/types';
+import {
+  hasPermission,
+  ReadWriteScope,
+  SafeUser,
+  UserRole
+} from '@repo/db/types';
 import { fmError } from '../error';
 import { prisma } from '@repo/db';
 
 export const ensureAccessToAcademy = async (
   user: SafeUser,
-  academyId: number
+  academyId: number,
+  scope: ReadWriteScope = 'read'
 ) => {
-  if (hasPermission(user, 'ACCESS_ALL_ACADEMIES')) return;
+  if (
+    hasPermission(
+      user,
+      scope === 'read' ? 'READ_ALL_ACADEMIES' : 'WRITE_ALL_ACADEMIES'
+    )
+  )
+    return;
 
-  if (hasPermission(user, 'ACCESS_PARTICIPANT_ACADEMIES')) {
+  if (
+    hasPermission(
+      user,
+      scope === 'read'
+        ? 'READ_PARTICIPANT_ACADEMIES'
+        : 'WRITE_PARTICIPANT_ACADEMIES'
+    )
+  ) {
     let count = 0;
     switch (user.userRole) {
       case UserRole.KL:
@@ -30,13 +49,11 @@ export const ensureAccessToAcademy = async (
         break;
     }
 
-    if (count === 0) {
-      throw fmError({
-        type: 'unauthorized',
-        reason: 'insufficient-permissions'
-      });
-    }
+    if (count > 0) return;
   }
 
-  throw fmError({ type: 'unauthorized', reason: 'insufficient-permissions' });
+  throw fmError({
+    type: 'unauthorized',
+    reason: 'insufficient-permissions'
+  }).toTRPCError();
 };

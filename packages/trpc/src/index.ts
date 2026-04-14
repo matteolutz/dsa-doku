@@ -11,3 +11,5 @@ export const procedure = t.procedure;
 
 export { trpcExpress } from './express';
 export { type AppRouter } from './routers';
+
+export { FileSystemService } from './services/fs';

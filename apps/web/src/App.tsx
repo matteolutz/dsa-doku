@@ -1,4 +1,4 @@
-import { useAuthStore } from './utils/trpc';
+import { useAuthStore, useLoggedInState } from './utils/trpc';
 
 import { Navigate, Route, Routes } from 'react-router';
 import HomePage from './pages/Home';
@@ -29,6 +29,20 @@ const AuthRoute: FC<{ navigateTo?: string; element: React.ReactNode }> = ({
   return element;
 };
 
+const AcademyRoute: FC<{ navigateTo?: string; element: React.ReactNode }> = ({
+  element,
+  navigateTo
+}) => {
+  const Internal = () => {
+    const [loggedInState] = useLoggedInState();
+    if (!loggedInState.selectedAcademy) return null;
+
+    return element;
+  };
+
+  return <AuthRoute navigateTo={navigateTo} element={<Internal />} />;
+};
+
 const App = () => {
   const authState = useAuthStore();
   const isLoggedIn = authState.isLoggedIn();
@@ -54,7 +68,7 @@ const App = () => {
 
         <Route
           path="sections"
-          element={<AuthRoute element={<SectionsPage />} />}
+          element={<AcademyRoute element={<SectionsPage />} />}
         />
 
         <Route path="loading" element={<LoadingPage />} />

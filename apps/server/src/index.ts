@@ -6,6 +6,7 @@ import { trpcExpress } from '@repo/trpc';
 import { pwaRouter } from './router/pwa';
 
 import cors from 'cors';
+import { fsRouter } from './router/fs';
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use('/health', (_, res) => {
 
 app.use('/pwa', pwaRouter);
 app.use('/trpc', trpcExpress);
+app.use('/fs', fsRouter);
 
 const port = process.env.PORT || 3000;
 
