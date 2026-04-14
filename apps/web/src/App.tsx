@@ -11,6 +11,7 @@ import { type FC } from 'react';
 import Scaffold from './components/scaffold';
 import NotFoundPage from './pages/NotFound';
 import SectionsPage from './pages/Sections';
+import CreateDocPage from './pages/CreateDoc';
 
 const AuthRoute: FC<{ navigateTo?: string; element: React.ReactNode }> = ({
   navigateTo,
@@ -70,6 +71,13 @@ const App = () => {
           path="sections"
           element={<AcademyRoute element={<SectionsPage />} />}
         />
+
+        <Route path="doc">
+          <Route
+            path="create"
+            element={<AuthRoute element={<CreateDocPage />} />}
+          />
+        </Route>
 
         <Route path="loading" element={<LoadingPage />} />
 

@@ -9,7 +9,7 @@ export type ConversionInputFile =
 
 export type ConversionInput = {
   file: ConversionInputFile;
-  preferredStartingPageNumber: number;
+  preferredStartingPageNumber: number | null;
 
   options: {
     tempDir: string;

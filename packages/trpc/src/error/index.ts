@@ -18,7 +18,7 @@ export type FMErrorType =
     }
   | {
       type: 'resource-not-found';
-      resource: 'course';
+      resource: 'course' | 'uploaded-doc';
       id: string | number;
     };
 

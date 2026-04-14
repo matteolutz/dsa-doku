@@ -21,31 +21,34 @@ export const docxConversionFn = async (
 
   const doc = new DOMParser().parseFromString(xmlContent, 'text/xml');
 
-  const select = xpath.useNamespaces({
-    w: 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
-  });
+  if (input.preferredStartingPageNumber !== null) {
+    const select = xpath.useNamespaces({
+      w: 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
+    });
 
-  const sectPrNodes = select('//w:sectPr', doc);
+    const sectPrNodes = select('//w:sectPr', doc);
 
-  if (!Array.isArray(sectPrNodes)) throw new Error('Invalid w:sectPr found');
+    if (!Array.isArray(sectPrNodes)) throw new Error('Invalid w:sectPr found');
 
-  if (sectPrNodes.length !== 1)
-    throw new Error('Invalid number of w:sectPr found');
+    if (sectPrNodes.length !== 1)
+      throw new Error('Invalid number of w:sectPr found');
 
-  const sectPr = sectPrNodes[0]!;
-  const pgNumTypes = select('w:pgNumType', sectPr);
+    const sectPr = sectPrNodes[0]!;
+    const pgNumTypes = select('w:pgNumType', sectPr);
 
-  if (!Array.isArray(pgNumTypes)) throw new Error('Invalid w:pgNumType found');
+    if (!Array.isArray(pgNumTypes))
+      throw new Error('Invalid w:pgNumType found');
 
-  let pgNumType = pgNumTypes[0];
+    let pgNumType = pgNumTypes[0];
 
-  if (!pgNumType) {
-    pgNumType = doc.createElement('w:pgNumType');
-    sectPr.appendChild(pgNumType);
+    if (!pgNumType) {
+      pgNumType = doc.createElement('w:pgNumType');
+      sectPr.appendChild(pgNumType);
+    }
+
+    // @ts-ignore
+    pgNumType.setAttribute('w:start', input.preferredStartingPageNumber);
   }
-
-  // @ts-ignore
-  pgNumType.setAttribute('w:start', input.preferredStartingPageNumber);
 
   const updatedXml = new XMLSerializer().serializeToString(doc);
   zip.file(docXmlPath, updatedXml);

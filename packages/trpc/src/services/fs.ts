@@ -33,11 +33,36 @@ export class FileSystemService {
     };
   }
 
+  async checkDocumentFs(documentId: string): Promise<DocumentFs | null> {
+    const rootDir = this.getDir(documentId);
+    const tempDir = this.getDir(`${documentId}/temp`);
+    const outDir = this.getDir(`${documentId}/out`);
+
+    try {
+      await fs.access(rootDir);
+      await fs.access(tempDir);
+      await fs.access(outDir);
+
+      return {
+        rootDir,
+        tempDir,
+        outDir
+      };
+    } catch {
+      return null;
+    }
+  }
+
   async cleanDocumentFsTemp(documentId: string): Promise<void> {
     const tempDir = this.getDir(`${documentId}/temp`);
 
     await fs.rm(tempDir, { recursive: true, force: true });
     await fs.mkdir(tempDir, { recursive: true });
+  }
+
+  async rmDocumentFs(documentId: string): Promise<void> {
+    const rootDir = this.getDir(documentId);
+    await fs.rm(rootDir, { recursive: true, force: true });
   }
 
   static get instance() {

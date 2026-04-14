@@ -7,7 +7,7 @@ export const fsRouter: express.Router = express.Router();
 
 const upload = multer({
   storage: multer.diskStorage({
-    destination: async (req, file, cb) => {
+    destination: async (_, file, cb) => {
       try {
         const docId = uuid();
         const fs = await FileSystemService.instance.makeDocumentFs(docId);
@@ -19,6 +19,9 @@ const upload = multer({
       } catch (err) {
         cb(err as Error, '');
       }
+    },
+    filename: (_, file, cb) => {
+      cb(null, file.originalname);
     }
   })
 });
@@ -29,5 +32,7 @@ fsRouter.post('/doc', upload.single('file'), (req, res) => {
   // @ts-ignore
   const docId: string = file.docId!;
 
-  res.json({ docId });
+  const fileName = file.filename;
+
+  res.json({ docId, originalFileName: fileName });
 });

@@ -5,6 +5,7 @@ import { trpc } from '@/utils/trpc';
 import type { DocumentType } from '@repo/db/types';
 import { useQuery } from '@tanstack/react-query';
 import type { FC } from 'react';
+import { Link } from 'react-router';
 
 export type AbstractDocumentsProps = {
   documentType: DocumentType;
@@ -30,7 +31,11 @@ const AbstractDocuments: FC<AbstractDocumentsProps> = ({ documentType }) => {
           </Item>
         ))}
       </ReorderList>
-      <Button>Hinzufügen</Button>
+      <Button asChild>
+        <Link to={`/doc/create?t=${btoa(JSON.stringify(documentType))}`}>
+          Hinzufügen
+        </Link>
+      </Button>
     </div>
   );
 };
