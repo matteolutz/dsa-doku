@@ -22,10 +22,12 @@ const SectionsPage = () => {
 
         <Card className="w-full p-4">
           <TypographyH4>Vorwort der Akademieleitung</TypographyH4>
+          <AbstractDocuments documentType={{ type: 'AL_PREFACE', academyId }} />
         </Card>
 
         <Card className="w-full p-4">
           <TypographyH4>KüMu</TypographyH4>
+          <AbstractDocuments documentType={{ type: 'KUMU', academyId }} />
         </Card>
 
         {academyQuery.data?.courses.map((course) => (
@@ -34,14 +36,14 @@ const SectionsPage = () => {
               {academyQuery.data?.yearIdx}.{course.courseIdx} {course.title}
             </TypographyH4>
             <AbstractDocuments
-              documentType={{ type: 'course', courseId: course.id }}
+              documentType={{ type: 'COURSE', courseId: course.id, academyId }}
             />
           </Card>
         ))}
 
         <Card className="w-full p-4">
           <TypographyH4>KüA</TypographyH4>
-          <AbstractDocuments documentType={{ type: 'kua', academyId }} />
+          <AbstractDocuments documentType={{ type: 'KUA', academyId }} />
         </Card>
       </div>
     </div>

@@ -5,9 +5,11 @@ import { DocumentTypeZod } from '../models/doc';
 import { requireUser } from '../utils/auth';
 import { ensureAccessToCourse } from '../utils/course';
 import { fmError } from '../error';
-import { AbstractDocument } from '@repo/db/types';
 import path from 'path';
 import { generateDocumentUploadNonce } from '../utils/nonce';
+import { ensureAccessToAcademy } from '../utils/academy';
+import { DocumentCategory } from '@repo/db/types';
+import { docAdded } from '../utils/doc';
 
 export const docRouter = router({
   onEvent: procedure.subscription(async function* ({ ctx, input }) {
@@ -22,9 +24,8 @@ export const docRouter = router({
     .query(async ({ input, ctx }) => {
       const user = requireUser(ctx);
 
-      let documents: AbstractDocument[];
       switch (input.documentType.type) {
-        case 'course': {
+        case 'COURSE': {
           const course = await ctx.prisma.course.findUnique({
             where: {
               id: input.documentType.courseId
@@ -40,17 +41,28 @@ export const docRouter = router({
 
           await ensureAccessToCourse(user, course);
 
-          documents = await ctx.prisma.courseDocument.findMany({
-            where: { course: { id: course.id } }
+          return ctx.prisma.document.findMany({
+            where: {
+              course: { id: course.id },
+              category: DocumentCategory.COURSE
+            },
+            orderBy: {
+              sortOrder: 'asc'
+            }
           });
-          break;
         }
-        case 'kua':
-          documents = [];
-          break;
+        default:
+          await ensureAccessToAcademy(user, input.documentType.academyId);
+          return ctx.prisma.document.findMany({
+            where: {
+              academy: { id: input.documentType.academyId },
+              category: input.documentType.type
+            },
+            orderBy: {
+              sortOrder: 'asc'
+            }
+          });
       }
-
-      return documents;
     }),
   getUploadNonce: procedure.mutation(async ({ ctx }) => {
     const user = requireUser(ctx);
@@ -62,7 +74,7 @@ export const docRouter = router({
         documentType: DocumentTypeZod,
         docId: z.string(),
         originalFileName: z.string(),
-        name: z.string(),
+        title: z.string(),
         containsPageNumbers: z.boolean()
       })
     )
@@ -79,7 +91,7 @@ export const docRouter = router({
 
       try {
         switch (input.documentType.type) {
-          case 'course':
+          case 'COURSE':
             const course = await ctx.prisma.course.findUnique({
               where: { id: input.documentType.courseId }
             });
@@ -89,10 +101,10 @@ export const docRouter = router({
                 resource: 'course',
                 id: input.documentType.courseId
               }).toTRPCError();
+
             await ensureAccessToCourse(user, course, 'write');
-            break;
-          case 'kua':
-          // TODO: break;
+          default:
+            await ensureAccessToAcademy(user, input.documentType.academyId);
         }
       } catch (err) {
         await FileSystemService.instance.rmDocumentFs(input.docId);
@@ -107,25 +119,23 @@ export const docRouter = router({
         options: { tempDir: fs.tempDir, outDir: fs.outDir }
       });
 
-      let document: AbstractDocument;
-      switch (input.documentType.type) {
-        case 'course': {
-          document = await ctx.prisma.courseDocument.create({
-            data: {
-              name: input.name,
-        16  course: { connect: { id: input.documentType.courseId } },
-              numberOfConvertedPages: conversionResult.pages.length,
-              docId: input.docId,
-              originalFileName: input.originalFileName,
-              orderIdx: 1
-            }
-          });
-          break;
+      const { orderIdx } = await docAdded(input.documentType);
+
+      const document = await ctx.prisma.document.create({
+        data: {
+          id: input.docId,
+          title: input.title,
+          category: input.documentType.type,
+          academy: { connect: { id: input.documentType.academyId } },
+          course:
+            input.documentType.type == 'COURSE'
+              ? { connect: { id: input.documentType.courseId } }
+              : undefined,
+          numberOfPages: conversionResult.pages.length,
+          originalFileName: input.originalFileName,
+          sortOrder: orderIdx
         }
-        case 'kua': {
-          throw new Error('TODO');
-        }
-      }
+      });
 
       return document;
     })

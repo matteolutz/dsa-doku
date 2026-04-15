@@ -1,27 +1,24 @@
-import { Prisma } from '@prisma/client';
+import { DocumentCategory, Prisma } from '@prisma/client';
 
 export * from '@prisma/client';
 
 export type SafeUser = Prisma.UserGetPayload<{ omit: { password: true } }>;
 
-export type AbstractDocument = {
-  name: string;
-  docId: string;
-
-  orderIdx: number;
-  numberOfConvertedPages: number;
-};
-
-// TODO: add more
-export type DocumentType =
+export type DocumentType = (
   | {
-      type: 'course';
+      type: typeof DocumentCategory.COURSE;
       courseId: number;
     }
   | {
-      type: 'kua';
-      academyId: number;
-    };
+      type: typeof DocumentCategory.KUA;
+    }
+  | {
+      type: typeof DocumentCategory.AL_PREFACE;
+    }
+  | {
+      type: typeof DocumentCategory.KUMU;
+    }
+) & { academyId: number };
 
 export {
   UserPermissionFlags,

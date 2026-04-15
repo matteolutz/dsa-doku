@@ -58,6 +58,8 @@ model Academy {
   courses    Course[]
   academyALs AcademyAL[]
 
+  documents Document[]
+
   @@unique([year, yearIdx])
   @@unique([location, year])
 }
@@ -81,10 +83,11 @@ model Course {
   title    String
   subtitle String
 
-  courseIdx       Int
-  courseDocuments CourseDocument[]
+  courseIdx Int
 
   courseParticipations CourseParticipation[]
+
+  documents Document[]
 }
 
 model CourseParticipation {
@@ -97,17 +100,28 @@ model CourseParticipation {
   @@id([courseId, userId])
 }
 
-model CourseDocument {
-  id Int @id @default(autoincrement())
+enum DocumentCategory {
+  AL_PREFACE
+  KUMU
+  COURSE
+  KUA
+}
 
-  name String
+model Document {
+  id String @id
 
-  courseId Int
-  course   Course @relation(fields: [courseId], references: [id])
+  academyId Int
+  academy   Academy @relation(fields: [academyId], references: [id])
 
-  docId            String
-  originalFileName String
+  title    String
+  category DocumentCategory
 
-  orderIdx               Int
-  numberOfConvertedPages Int
+  courseId Int?
+  course   Course? @relation(fields: [courseId], references: [id])
+
+  startingPageNumber Int
+  numberOfPages      Int
+  originalFileName   String
+
+  sortOrder Int // Sorting order inside the
 }

@@ -31,9 +31,9 @@ const AbstractDocuments: FC<AbstractDocumentsProps> = ({ documentType }) => {
     <div className="w-full flex flex-col gap-2">
       <ReorderList itemClassName="rounded-lg" withDragHandle>
         {documentsQuery.data.map((doc) => (
-          <Item variant="outline" size="sm" key={doc.name}>
+          <Item variant="outline" size="sm" key={doc.id}>
             <ItemContent>
-              <ItemTitle>{doc.name}</ItemTitle>
+              <ItemTitle>{doc.title}</ItemTitle>
             </ItemContent>
             <ItemActions>
               <Button variant="destructive" size="icon">

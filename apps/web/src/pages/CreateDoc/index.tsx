@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { apiUrl } from '@/utils/api';
-import { trpc } from '@/utils/trpc';
+import { queryClient, trpc } from '@/utils/trpc';
 import { useMutation } from '@tanstack/react-query';
 import { useEffect, useEffectEvent } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -18,7 +18,7 @@ const RENUMBERING_SUPPORT = [
 
 type FormInputs = {
   file: FileList;
-  name: string;
+  title: string;
   containsPageNumbers: boolean;
 };
 
@@ -44,7 +44,15 @@ const CreateDocPage = () => {
   const getNonceMutation = useMutation(
     trpc.doc.getUploadNonce.mutationOptions()
   );
-  const createDocMutation = useMutation(trpc.doc.create.mutationOptions());
+  const createDocMutation = useMutation(
+    trpc.doc.create.mutationOptions({
+      onSuccess: () => {
+        return queryClient.invalidateQueries({
+          queryKey: trpc.doc.getAll.queryKey()
+        });
+      }
+    })
+  );
 
   const navigate = useNavigate();
 
@@ -68,8 +76,8 @@ const CreateDocPage = () => {
       docId,
       originalFileName,
       documentType: docType,
-      name: data.name,
-      containsPageNumbers: data.containsPageNumbers
+      title: data.title,
+      containsPageNumbers: data.containsPageNumbers ?? false
     });
 
     navigate('/sections');
@@ -98,7 +106,7 @@ const CreateDocPage = () => {
               id="name"
               type="text"
               required
-              {...createForm.register('name')}
+              {...createForm.register('title')}
             />
           </div>
           <div className="flex gap-2">

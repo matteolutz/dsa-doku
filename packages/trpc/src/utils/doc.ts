@@ -1,6 +1,12 @@
 import { prisma } from '@repo/db';
-import { DocumentType } from '@repo/db/types';
-import { todo } from '../error';
+import { DocumentCategory, DocumentType } from '@repo/db/types';
+
+const DOC_CATEGORY_ORDER = [
+  DocumentCategory.AL_PREFACE,
+  DocumentCategory.KUMU,
+  DocumentCategory.COURSE,
+  DocumentCategory.KUA
+] as const;
 
 export type DocRegnerationTask = {
   from: DocumentType & { id: number };
@@ -8,29 +14,23 @@ export type DocRegnerationTask = {
 };
 
 export type DocAddedResult = {
-  orderIdx: number | null;
+  orderIdx: number;
 };
 
-export const getDocOrderIdx = async (
+export const docAdded = async (
   docType: DocumentType
 ): Promise<DocAddedResult> => {
-  let docOrderIdx = null;
-  switch (docType.type) {
-    case 'course': {
-      const {
-        _max: { orderIdx: maxDocOrderIdx }
-      } = await prisma.courseDocument.aggregate({
-        _max: { orderIdx: true },
-        where: { course: { id: docType.courseId } }
-      });
-
-      docOrderIdx = maxDocOrderIdx !== null ? maxDocOrderIdx + 1 : 0;
-
-      break;
+  const {
+    _max: { sortOrder: maxDocOrderIdx }
+  } = await prisma.document.aggregate({
+    _max: { sortOrder: true },
+    where: {
+      course: docType.type === 'COURSE' ? { id: docType.courseId } : undefined,
+      category: docType.type
     }
-    case 'kua':
-      throw todo('kua document upload').toTRPCError();
-  }
+  });
 
-  return { orderIdx: docOrderIdx };
+  return {
+    orderIdx: maxDocOrderIdx !== null ? maxDocOrderIdx + 1 : 0
+  };
 };
