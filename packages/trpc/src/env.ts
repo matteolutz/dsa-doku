@@ -9,5 +9,6 @@ const requiredEnv = (name: string) => {
 
 export const env = {
   JWT_SECRET: requiredEnv('JWT_SECRET'),
+  NONCE_SECRET: requiredEnv('NONCE_SECRET'),
   FILE_ROOT: requiredEnv('FILE_ROOT')
 };

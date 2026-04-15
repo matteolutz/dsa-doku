@@ -20,6 +20,10 @@ export type FMErrorType =
       type: 'resource-not-found';
       resource: 'course' | 'uploaded-doc';
       id: string | number;
+    }
+  | {
+      type: 'todo';
+      feature: string;
     };
 
 export class FMError extends Error {
@@ -39,6 +43,9 @@ export class FMError extends Error {
       case 'resource-not-found':
         code = 'NOT_FOUND';
         break;
+      case 'todo':
+        code = 'INTERNAL_SERVER_ERROR';
+        break;
     }
 
     throw new TRPCError({
@@ -50,3 +57,4 @@ export class FMError extends Error {
 }
 
 export const fmError = (type: FMErrorType): FMError => new FMError(type);
+export const todo = (feature: string) => fmError({ type: 'todo', feature });

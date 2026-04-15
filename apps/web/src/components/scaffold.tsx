@@ -62,6 +62,8 @@ const Scaffold = () => {
   const location = useLocation();
   const activeTab = location.pathname.split('/')[1];
 
+  const isMainRoute = Object.keys(TOP_LEVEL_ROUTES).includes(activeTab);
+
   const userFetchingState: UserFetchingState = meQuery.data?.user
     ? { state: 'loaded', user: meQuery.data.user }
     : meQuery.error
@@ -72,8 +74,13 @@ const Scaffold = () => {
 
   return (
     <div className="size-full flex flex-col overflow-hidden">
-      <Header title={TOP_LEVEL_ROUTES[activeTab]?.label ?? activeTab} />
-      <div className="w-full flex-1 overflow-auto">
+      <Header
+        showBackButton={!isMainRoute}
+        disableAcademySelector={!isMainRoute}
+        title={TOP_LEVEL_ROUTES[activeTab]?.label}
+      />
+
+      <div className="w-full mb-16 grow overflow-auto">
         <Suspense fallback={<LoadingPage />}>
           {meQuery.isFetched || meQuery.failureCount >= 1 ? (
             <UserContextProivder value={userFetchingState}>
@@ -84,22 +91,26 @@ const Scaffold = () => {
           )}
         </Suspense>
       </div>
-      <BottomNav
-        items={Object.getOwnPropertyNames(TOP_LEVEL_ROUTES)
-          .filter(
-            (route) =>
-              isLoggedIn || !TOP_LEVEL_ROUTES[route].hiddenWhenLoggedOut
-          )
-          .map((route) => ({
-            label: TOP_LEVEL_ROUTES[route].label,
-            icon: TOP_LEVEL_ROUTES[route].icon,
-            value: route,
-            disabled:
-              TOP_LEVEL_ROUTES[route].disabledWhenNoAcademy && !academySelected
-          }))}
-        activeTab={activeTab}
-        onActiveTabChange={(tab) => navigate(tab)}
-      />
+
+      {isMainRoute && (
+        <BottomNav
+          items={Object.getOwnPropertyNames(TOP_LEVEL_ROUTES)
+            .filter(
+              (route) =>
+                isLoggedIn || !TOP_LEVEL_ROUTES[route].hiddenWhenLoggedOut
+            )
+            .map((route) => ({
+              label: TOP_LEVEL_ROUTES[route].label,
+              icon: TOP_LEVEL_ROUTES[route].icon,
+              value: route,
+              disabled:
+                TOP_LEVEL_ROUTES[route].disabledWhenNoAcademy &&
+                !academySelected
+            }))}
+          activeTab={activeTab}
+          onActiveTabChange={(tab) => navigate(tab)}
+        />
+      )}
     </div>
   );
 };

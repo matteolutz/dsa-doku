@@ -16,7 +16,7 @@ const SectionsPage = () => {
   console.log(academyQuery.data);
 
   return (
-    <div className="size-full p-4 flex justify-center">
+    <div className="w-full p-4 flex justify-center">
       <div className="w-200 max-w-200 flex flex-col gap-4">
         <TypographyH2>Abschnitte</TypographyH2>
 

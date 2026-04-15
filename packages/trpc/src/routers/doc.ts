@@ -7,6 +7,7 @@ import { ensureAccessToCourse } from '../utils/course';
 import { fmError } from '../error';
 import { AbstractDocument } from '@repo/db/types';
 import path from 'path';
+import { generateDocumentUploadNonce } from '../utils/nonce';
 
 export const docRouter = router({
   onEvent: procedure.subscription(async function* ({ ctx, input }) {
@@ -51,6 +52,10 @@ export const docRouter = router({
 
       return documents;
     }),
+  getUploadNonce: procedure.mutation(async ({ ctx }) => {
+    const user = requireUser(ctx);
+    return generateDocumentUploadNonce(user.id);
+  }),
   create: procedure
     .input(
       z.object({
@@ -108,7 +113,7 @@ export const docRouter = router({
           document = await ctx.prisma.courseDocument.create({
             data: {
               name: input.name,
-              course: { connect: { id: input.documentType.courseId } },
+        16  course: { connect: { id: input.documentType.courseId } },
               numberOfConvertedPages: conversionResult.pages.length,
               docId: input.docId,
               originalFileName: input.originalFileName,

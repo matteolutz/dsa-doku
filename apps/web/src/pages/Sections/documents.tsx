@@ -1,7 +1,14 @@
 import { ReorderList } from '@/components/shadix-ui/components/reorder-list';
 import { Button } from '@/components/ui/button';
-import { Item, ItemContent, ItemTitle } from '@/components/ui/item';
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemTitle
+} from '@/components/ui/item';
 import { trpc } from '@/utils/trpc';
+import { Delete } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
 import type { DocumentType } from '@repo/db/types';
 import { useQuery } from '@tanstack/react-query';
 import type { FC } from 'react';
@@ -28,6 +35,11 @@ const AbstractDocuments: FC<AbstractDocumentsProps> = ({ documentType }) => {
             <ItemContent>
               <ItemTitle>{doc.name}</ItemTitle>
             </ItemContent>
+            <ItemActions>
+              <Button variant="destructive" size="icon">
+                <HugeiconsIcon icon={Delete} />
+              </Button>
+            </ItemActions>
           </Item>
         ))}
       </ReorderList>

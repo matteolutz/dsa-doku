@@ -1,4 +1,4 @@
-import { FileSystemService } from '@repo/trpc';
+import { FileSystemService, verifyDocumentUploadNonce } from '@repo/trpc';
 import express from 'express';
 import multer from 'multer';
 import { v4 as uuid } from 'uuid';
@@ -23,7 +23,18 @@ const upload = multer({
     filename: (_, file, cb) => {
       cb(null, file.originalname);
     }
-  })
+  }),
+  fileFilter: (req, _, cb) => {
+    const nonce = req.query['nonce'];
+    if (typeof nonce !== 'string') return cb(new Error('Nonce is required'));
+
+    const verificationResult = verifyDocumentUploadNonce(nonce);
+    if (verificationResult.status === 'error')
+      return cb(new Error('Invalid nonce'));
+
+    // accept the file
+    cb(null, true);
+  }
 });
 
 fsRouter.post('/doc', upload.single('file'), (req, res) => {
