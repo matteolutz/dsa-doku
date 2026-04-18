@@ -20,7 +20,7 @@ export type AbstractDocumentsProps = {
 
 const AbstractDocuments: FC<AbstractDocumentsProps> = ({ documentType }) => {
   const documentsQuery = useQuery(
-    trpc.doc.getAll.queryOptions({
+    trpc.doc.getAllOfType.queryOptions({
       documentType
     })
   );

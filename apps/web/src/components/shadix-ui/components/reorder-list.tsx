@@ -6,7 +6,7 @@ import { Reorder, useDragControls, useMotionValue } from 'motion/react';
 import { useRaisedShadow } from '@/hooks/useRaisedShadow';
 import { cn } from '@/lib/utils';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { Drag, Grip } from '@hugeicons/core-free-icons';
+import { Drag } from '@hugeicons/core-free-icons';
 
 const ReorderList: React.FC<ReorderListProps> = ({
   className,

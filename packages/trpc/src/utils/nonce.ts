@@ -28,3 +28,31 @@ export const verifyDocumentUploadNonce = (
     return error(e);
   }
 };
+
+export type DocumentReadNoncePayload = JwtPayload & {
+  docId: string;
+  docPages: string[];
+};
+
+export const generateReadDocumentNonce = (
+  userId: number,
+  payload: DocumentReadNoncePayload
+) =>
+  jwt.sign(payload, env.NONCE_SECRET, {
+    expiresIn: '5min',
+    algorithm: 'HS256',
+    subject: '' + userId
+  });
+
+export const verifyReadDocumentNonce = (
+  nonce: string
+): Result<DocumentReadNoncePayload, unknown> => {
+  try {
+    const payload = jwt.verify(nonce, env.NONCE_SECRET, {
+      algorithms: ['HS256']
+    }) as DocumentReadNoncePayload;
+    return ok(payload);
+  } catch (e) {
+    return error(e);
+  }
+};

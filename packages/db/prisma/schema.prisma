@@ -87,6 +87,10 @@ model Course {
 
   courseParticipations CourseParticipation[]
 
+  // When this is set to true, everyone with access
+  // to the academy of this course can read all documents
+  allowReading Boolean @default(false)
+
   documents Document[]
 }
 
@@ -119,9 +123,7 @@ model Document {
   courseId Int?
   course   Course? @relation(fields: [courseId], references: [id])
 
-  startingPageNumber Int
-  numberOfPages      Int
-  originalFileName   String
+  meta Json
 
   sortOrder Int // Sorting order inside the
 }

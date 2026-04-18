@@ -19,7 +19,8 @@ export const ensureAccessToCourse = async (
       scope === 'read'
         ? 'READ_ALL_ACADEMY_WIDE_COURSES'
         : 'WRITE_ALL_ACADEMY_WIDE_COURSES'
-    )
+    ) ||
+    (course.allowReading && scope === 'read')
   ) {
     await ensureAccessToAcademy(user, course.academyId, scope);
     return;

@@ -2,9 +2,9 @@ import JSZip from 'jszip';
 import { ConversionInput, ConversionOutput } from '../types';
 import { execFileAsync, readInputFile, splitPages } from '../utils';
 import { DOMParser, XMLSerializer } from 'xmldom';
-import xpath from 'xpath';
 import fs from 'fs/promises';
 import path from 'path';
+import OfficeParser from 'officeparser';
 
 // this code is very ugly
 // will be cleaned up in a future commit :)
@@ -21,33 +21,8 @@ export const docxConversionFn = async (
 
   const doc = new DOMParser().parseFromString(xmlContent, 'text/xml');
 
-  if (input.preferredStartingPageNumber !== null) {
-    const select = xpath.useNamespaces({
-      w: 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
-    });
-
-    const sectPrNodes = select('//w:sectPr', doc);
-
-    if (!Array.isArray(sectPrNodes)) throw new Error('Invalid w:sectPr found');
-
-    if (sectPrNodes.length !== 1)
-      throw new Error('Invalid number of w:sectPr found');
-
-    const sectPr = sectPrNodes[0]!;
-    const pgNumTypes = select('w:pgNumType', sectPr);
-
-    if (!Array.isArray(pgNumTypes))
-      throw new Error('Invalid w:pgNumType found');
-
-    let pgNumType = pgNumTypes[0];
-
-    if (!pgNumType) {
-      pgNumType = doc.createElement('w:pgNumType');
-      sectPr.appendChild(pgNumType);
-    }
-
-    // @ts-ignore
-    pgNumType.setAttribute('w:start', input.preferredStartingPageNumber);
+  if (input.removePageNumbers) {
+    // TODO: remove page numbers
   }
 
   const updatedXml = new XMLSerializer().serializeToString(doc);
@@ -56,6 +31,12 @@ export const docxConversionFn = async (
   const newDocx = await zip.generateAsync({ type: 'nodebuffer' });
   const newDocxPath = path.join(input.options.tempDir, 'temp.docx');
   await fs.writeFile(newDocxPath, newDocx);
+
+  const ast = await OfficeParser.parseOffice(newDocxPath);
+  await fs.writeFile(
+    path.join(input.options.outDir, 'test.json'),
+    JSON.stringify(ast, null, 2)
+  );
 
   // convert docx to pdf
   await execFileAsync('soffice', [
@@ -67,8 +48,10 @@ export const docxConversionFn = async (
     newDocxPath
   ]);
 
-  return splitPages(
+  const pages = await splitPages(
     path.join(input.options.tempDir, 'temp.pdf'),
     input.options.outDir
   );
+
+  return { pages, headings: {} };
 };

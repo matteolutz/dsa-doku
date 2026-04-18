@@ -35,8 +35,15 @@ const CreateDocPage = () => {
   const disableContainsPageNumbers = useEffectEvent(() =>
     createForm.resetField('containsPageNumbers')
   );
+  const setTitle = useEffectEvent((title: string) =>
+    createForm.setValue('title', title)
+  );
   useEffect(() => {
-    if (uploadedFile && !RENUMBERING_SUPPORT.includes(uploadedFile.type)) {
+    if (!uploadedFile) return;
+
+    setTitle(uploadedFile.name);
+
+    if (!RENUMBERING_SUPPORT.includes(uploadedFile.type)) {
       disableContainsPageNumbers();
     }
   }, [uploadedFile]);

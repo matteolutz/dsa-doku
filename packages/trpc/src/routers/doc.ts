@@ -6,16 +6,107 @@ import { requireUser } from '../utils/auth';
 import { ensureAccessToCourse } from '../utils/course';
 import { fmError } from '../error';
 import path from 'path';
-import { generateDocumentUploadNonce } from '../utils/nonce';
+import {
+  generateDocumentUploadNonce,
+  generateReadDocumentNonce
+} from '../utils/nonce';
 import { ensureAccessToAcademy } from '../utils/academy';
-import { DocumentCategory } from '@repo/db/types';
-import { docAdded } from '../utils/doc';
+import { DocumentCategory, DocumentMeta } from '@repo/db/types';
+import { docAdded, getAllDocsOfType } from '../utils/doc';
 
 export const docRouter = router({
   onEvent: procedure.subscription(async function* ({ ctx, input }) {
     const user = requireUser(ctx);
   }),
+  getDocNonce: procedure
+    .input(
+      z.object({
+        docId: z.string()
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const user = requireUser(ctx);
+      const doc = await ctx.prisma.document.findUnique({
+        where: { id: input.docId }
+      });
+
+      if (!doc)
+        throw fmError({
+          type: 'resource-not-found',
+          resource: 'doc',
+          id: input.docId
+        }).toTRPCError();
+
+      // TODO: check permissions
+
+      const docMeta: DocumentMeta = doc.meta as DocumentMeta;
+      if (docMeta.type !== 'file')
+        throw fmError({
+          type: 'document-type-mismatch',
+          expected: 'file',
+          actual: docMeta.type
+        }).toTRPCError();
+
+      return generateReadDocumentNonce(user.id, {
+        docId: doc.id,
+        docPages: docMeta.meta.pages
+      });
+    }),
   getAll: procedure
+    .input(z.object({ academyId: z.int() }))
+    .query(async ({ ctx, input }) => {
+      const user = requireUser(ctx);
+      await ensureAccessToAcademy(user, input.academyId);
+
+      const docs = [];
+
+      // 1. AL_PREFACE
+      docs.push(
+        ...(await getAllDocsOfType(
+          { type: DocumentCategory.AL_PREFACE, academyId: input.academyId },
+          user
+        ))
+      );
+
+      // 2. KUMU
+      docs.push(
+        ...(await getAllDocsOfType(
+          { type: DocumentCategory.KUMU, academyId: input.academyId },
+          user
+        ))
+      );
+
+      // 3. COURSE
+      for (const { id: courseId } of await ctx.prisma.course.findMany({
+        where: { academy: { id: input.academyId } },
+        select: { id: true },
+        orderBy: {
+          courseIdx: 'asc'
+        }
+      })) {
+        docs.push(
+          ...(await getAllDocsOfType(
+            {
+              type: DocumentCategory.COURSE,
+              courseId,
+              academyId: input.academyId
+            },
+            user
+          ))
+        );
+      }
+
+      // 4. KUA
+      docs.push(
+        ...(await getAllDocsOfType(
+          { type: DocumentCategory.KUA, academyId: input.academyId },
+          user
+        ))
+      );
+
+      return docs;
+    }),
+  getAllOfType: procedure
     .input(
       z.object({
         documentType: DocumentTypeZod
@@ -24,45 +115,7 @@ export const docRouter = router({
     .query(async ({ input, ctx }) => {
       const user = requireUser(ctx);
 
-      switch (input.documentType.type) {
-        case 'COURSE': {
-          const course = await ctx.prisma.course.findUnique({
-            where: {
-              id: input.documentType.courseId
-            }
-          });
-
-          if (!course)
-            throw fmError({
-              type: 'resource-not-found',
-              resource: 'course',
-              id: input.documentType.courseId
-            });
-
-          await ensureAccessToCourse(user, course);
-
-          return ctx.prisma.document.findMany({
-            where: {
-              course: { id: course.id },
-              category: DocumentCategory.COURSE
-            },
-            orderBy: {
-              sortOrder: 'asc'
-            }
-          });
-        }
-        default:
-          await ensureAccessToAcademy(user, input.documentType.academyId);
-          return ctx.prisma.document.findMany({
-            where: {
-              academy: { id: input.documentType.academyId },
-              category: input.documentType.type
-            },
-            orderBy: {
-              sortOrder: 'asc'
-            }
-          });
-      }
+      return getAllDocsOfType(input.documentType, user);
     }),
   getUploadNonce: procedure.mutation(async ({ ctx }) => {
     const user = requireUser(ctx);
@@ -81,8 +134,10 @@ export const docRouter = router({
     .mutation(async ({ input, ctx }) => {
       const user = requireUser(ctx);
 
-      const fs = await FileSystemService.instance.checkDocumentFs(input.docId);
-      if (!fs)
+      const docFs = await FileSystemService.instance.checkDocumentFs(
+        input.docId
+      );
+      if (!docFs)
         throw fmError({
           type: 'resource-not-found',
           resource: 'uploaded-doc',
@@ -91,7 +146,7 @@ export const docRouter = router({
 
       try {
         switch (input.documentType.type) {
-          case 'COURSE':
+          case 'COURSE': {
             const course = await ctx.prisma.course.findUnique({
               where: { id: input.documentType.courseId }
             });
@@ -103,6 +158,7 @@ export const docRouter = router({
               }).toTRPCError();
 
             await ensureAccessToCourse(user, course, 'write');
+          }
           default:
             await ensureAccessToAcademy(user, input.documentType.academyId);
         }
@@ -111,15 +167,26 @@ export const docRouter = router({
         throw err;
       }
 
-      const inputFile = path.join(fs.rootDir, input.originalFileName);
+      const inputFile = path.join(docFs.rootDir, input.originalFileName);
 
       const conversionResult = await convertToPdfPages({
         file: { path: inputFile },
-        preferredStartingPageNumber: 67,
-        options: { tempDir: fs.tempDir, outDir: fs.outDir }
+        removePageNumbers: input.containsPageNumbers,
+        options: { tempDir: docFs.tempDir, outDir: docFs.outDir }
       });
 
       const { orderIdx } = await docAdded(input.documentType);
+
+      const meta: DocumentMeta = {
+        type: 'file',
+        meta: {
+          originalFileName: input.originalFileName,
+          pages: conversionResult.pages.map(({ path: pagePath }) =>
+            path.basename(pagePath)
+          ),
+          headings: conversionResult.headings
+        }
+      };
 
       const document = await ctx.prisma.document.create({
         data: {
@@ -131,8 +198,7 @@ export const docRouter = router({
             input.documentType.type == 'COURSE'
               ? { connect: { id: input.documentType.courseId } }
               : undefined,
-          numberOfPages: conversionResult.pages.length,
-          originalFileName: input.originalFileName,
+          meta,
           sortOrder: orderIdx
         }
       });

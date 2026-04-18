@@ -16,10 +16,7 @@ export const readInputFile = async (
   return file.buffer;
 };
 
-export const splitPages = async (
-  inputFilePath: string,
-  outDir: string
-): Promise<ConversionOutput> => {
+export const splitPages = async (inputFilePath: string, outDir: string) => {
   if (process.platform === 'darwin') {
     await execFileAsync('gs', [
       '-sDEVICE=pdfwrite',
@@ -43,5 +40,5 @@ export const splitPages = async (
   const pageFiles = await Array.fromAsync(
     fs.glob(path.join(outDir, 'page-*.pdf'))
   );
-  return { pages: pageFiles.map((file) => ({ path: file })) };
+  return pageFiles.map((file) => ({ path: file }));
 };

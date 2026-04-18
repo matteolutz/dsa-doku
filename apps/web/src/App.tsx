@@ -12,6 +12,7 @@ import Scaffold from './components/scaffold';
 import NotFoundPage from './pages/NotFound';
 import SectionsPage from './pages/Sections';
 import CreateDocPage from './pages/CreateDoc';
+import ViewPage from './pages/View';
 
 const AuthRoute: FC<{ navigateTo?: string; element: React.ReactNode }> = ({
   navigateTo,
@@ -80,6 +81,8 @@ const App = () => {
         </Route>
 
         <Route path="loading" element={<LoadingPage />} />
+
+        <Route path="view" element={<AcademyRoute element={<ViewPage />} />} />
 
         <Route path="*" element={<NotFoundPage />} />
       </Route>

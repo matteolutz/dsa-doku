@@ -1,3 +1,4 @@
+import { DocumentMeta } from '@repo/db/types';
 import { TRPC_ERROR_CODE_KEY, TRPCError } from '@trpc/server';
 
 export type FMErrorType =
@@ -18,8 +19,18 @@ export type FMErrorType =
     }
   | {
       type: 'resource-not-found';
-      resource: 'course' | 'uploaded-doc';
+      resource: 'course' | 'uploaded-doc' | 'doc' | 'doc-fs';
       id: string | number;
+    }
+  | {
+      type: 'document-page-out-of-range';
+      page: number;
+      availablePages: number;
+    }
+  | {
+      type: 'document-type-mismatch';
+      expected: DocumentMeta['type'];
+      actual: DocumentMeta['type'];
     }
   | {
       type: 'todo';
@@ -42,6 +53,12 @@ export class FMError extends Error {
         break;
       case 'resource-not-found':
         code = 'NOT_FOUND';
+        break;
+      case 'document-type-mismatch':
+        code = 'BAD_REQUEST';
+        break;
+      case 'document-page-out-of-range':
+        code = 'BAD_REQUEST';
         break;
       case 'todo':
         code = 'INTERNAL_SERVER_ERROR';

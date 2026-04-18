@@ -9,7 +9,7 @@ export type ConversionInputFile =
 
 export type ConversionInput = {
   file: ConversionInputFile;
-  preferredStartingPageNumber: number | null;
+  removePageNumbers: boolean;
 
   options: {
     tempDir: string;
@@ -19,6 +19,11 @@ export type ConversionInput = {
 
 export type ConversionOutput = {
   pages: { path: string }[];
+
+  /**
+   * Heading titles with page offset (0 == first page)
+   */
+  headings: Record<string, number>;
 };
 
 export type ConversionFn = (
