@@ -23,7 +23,10 @@ export type ConversionOutput = {
   /**
    * Heading titles with page offset (0 == first page)
    */
-  headings: Record<string, number>;
+  headings: {
+    text: string;
+    pageOffset: number;
+  }[];
 };
 
 export type ConversionFn = (

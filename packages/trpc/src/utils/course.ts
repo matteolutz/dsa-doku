@@ -10,9 +10,23 @@ import { prisma } from '@repo/db';
 
 export const ensureAccessToCourse = async (
   user: SafeUser,
-  course: Course,
+  course: Course | number,
   scope: ReadWriteScope = 'read'
 ) => {
+  if (typeof course === 'number') {
+    const dbCourse = await prisma.course.findUnique({
+      where: { id: course }
+    });
+    if (!dbCourse)
+      throw fmError({
+        type: 'resource-not-found',
+        resource: 'course',
+        id: course
+      }).toTRPCError();
+
+    course = dbCourse;
+  }
+
   if (
     hasPermission(
       user,

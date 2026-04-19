@@ -121,6 +121,40 @@ export const docRouter = router({
     const user = requireUser(ctx);
     return generateDocumentUploadNonce(user.id);
   }),
+  delete: procedure
+    .input(
+      z.object({
+        docId: z.string()
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const user = requireUser(ctx);
+
+      const doc = await ctx.prisma.document.findUnique({
+        where: { id: input.docId }
+      });
+
+      if (!doc)
+        throw fmError({
+          type: 'resource-not-found',
+          resource: 'doc',
+          id: input.docId
+        }).toTRPCError();
+
+      switch (doc.category) {
+        case 'COURSE':
+          await ensureAccessToCourse(user, doc.courseId!, 'write');
+          break;
+        default:
+          await ensureAccessToAcademy(user, doc.academyId, 'write');
+          break;
+      }
+
+      await ctx.prisma.document.delete({
+        where: { id: input.docId }
+      });
+      await FileSystemService.instance.rmDocumentFs(doc.id);
+    }),
   create: procedure
     .input(
       z.object({
@@ -147,20 +181,20 @@ export const docRouter = router({
       try {
         switch (input.documentType.type) {
           case 'COURSE': {
-            const course = await ctx.prisma.course.findUnique({
-              where: { id: input.documentType.courseId }
-            });
-            if (!course)
-              throw fmError({
-                type: 'resource-not-found',
-                resource: 'course',
-                id: input.documentType.courseId
-              }).toTRPCError();
-
-            await ensureAccessToCourse(user, course, 'write');
+            await ensureAccessToCourse(
+              user,
+              input.documentType.courseId,
+              'write'
+            );
+            break;
           }
           default:
-            await ensureAccessToAcademy(user, input.documentType.academyId);
+            await ensureAccessToAcademy(
+              user,
+              input.documentType.academyId,
+              'write'
+            );
+            break;
         }
       } catch (err) {
         await FileSystemService.instance.rmDocumentFs(input.docId);

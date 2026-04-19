@@ -6,11 +6,12 @@ import {
   ItemContent,
   ItemTitle
 } from '@/components/ui/item';
-import { trpc } from '@/utils/trpc';
+import { useConfirmationModalContext } from '@/hooks/modal';
+import { queryClient, trpc } from '@/utils/trpc';
 import { Delete } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
-import type { DocumentType } from '@repo/db/types';
-import { useQuery } from '@tanstack/react-query';
+import type { Document, DocumentType } from '@repo/db/types';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import type { FC } from 'react';
 import { Link } from 'react-router';
 
@@ -25,7 +26,34 @@ const AbstractDocuments: FC<AbstractDocumentsProps> = ({ documentType }) => {
     })
   );
 
+  const deleteDocumentMutation = useMutation(
+    trpc.doc.delete.mutationOptions({
+      onSuccess: () => {
+        console.log('invalidating');
+        return queryClient.invalidateQueries({
+          queryKey: trpc.doc.getAllOfType.queryKey({ documentType })
+        });
+      }
+    })
+  );
+
+  const modalContext = useConfirmationModalContext();
+
+  const deleteDocument = async (doc: Document) => {
+    const result = await modalContext.showConfirmation({
+      title: 'Dokument löschen?',
+      message: `Möchtest Du das Dokument "${doc.title}" wirklich löschen?`,
+      confirmButtonText: 'Löschen',
+      confirmButtonVariant: 'destructive'
+    });
+
+    if (!result) return;
+    await deleteDocumentMutation.mutateAsync({ docId: doc.id });
+  };
+
   if (typeof documentsQuery.data === 'undefined') return null;
+
+  console.log(documentType, documentsQuery.data);
 
   return (
     <div className="w-full flex flex-col gap-2">
@@ -36,7 +64,11 @@ const AbstractDocuments: FC<AbstractDocumentsProps> = ({ documentType }) => {
               <ItemTitle>{doc.title}</ItemTitle>
             </ItemContent>
             <ItemActions>
-              <Button variant="destructive" size="icon">
+              <Button
+                onClick={() => deleteDocument(doc)}
+                variant="destructive"
+                size="icon"
+              >
                 <HugeiconsIcon icon={Delete} />
               </Button>
             </ItemActions>

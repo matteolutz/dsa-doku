@@ -15,5 +15,5 @@ export const pdfConversionFn = async (
   }
 
   const pages = await splitPages(filePath, input.options.outDir);
-  return { pages, headings: {} };
+  return { pages, headings: [] };
 };

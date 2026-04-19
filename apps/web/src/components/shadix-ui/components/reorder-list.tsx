@@ -1,5 +1,4 @@
-'use client';
-import React, { useState } from 'react';
+import React from 'react';
 
 import { Reorder, useDragControls, useMotionValue } from 'motion/react';
 
@@ -15,14 +14,11 @@ const ReorderList: React.FC<ReorderListProps> = ({
   onReorderFinish,
   ...props
 }) => {
-  const [items, setItems] = useState<React.ReactElement[]>(
-    React.Children.toArray(props.children).filter((child) =>
-      React.isValidElement(child)
-    ) as React.ReactElement[]
-  );
+  const items = React.Children.toArray(props.children).filter((child) =>
+    React.isValidElement(child)
+  ) as React.ReactElement[];
 
   const handleReorderFinish = (newOrder: unknown[]) => {
-    setItems(newOrder as React.ReactElement[]);
     onReorderFinish?.(newOrder as React.ReactElement[]);
   };
 

@@ -24,7 +24,12 @@ export type DocumentType = (
 export const DocumentFileMetaSchema = z.object({
   originalFileName: z.string(),
   pages: z.array(z.string()),
-  headings: z.record(z.string(), z.int())
+  headings: z.array(
+    z.object({
+      text: z.string(),
+      pageOffset: z.int()
+    })
+  )
 });
 export type DocumentFileMeta = z.infer<typeof DocumentFileMetaSchema>;
 

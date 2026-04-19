@@ -26,6 +26,12 @@ const upload = multer({
       }
     },
     filename: (_, file, cb) => {
+      // fix filename encoding
+      // https://github.com/expressjs/multer/issues/1104
+      file.originalname = Buffer.from(file.originalname, 'latin1').toString(
+        'utf-8'
+      );
+
       cb(null, file.originalname);
     }
   }),
