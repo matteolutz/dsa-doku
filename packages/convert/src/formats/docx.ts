@@ -72,7 +72,7 @@ export const docxConversionFn = async (
   await fs.writeFile(newDocxPath, newDocx);
 
   const ast = await OfficeParser.parseOffice(newDocxPath, {
-    includeBreaks: true
+    includeBreakNodes: true
   });
   await fs.writeFile(
     path.join(input.options.outDir, 'ast.json'),

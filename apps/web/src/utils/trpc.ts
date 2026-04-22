@@ -244,6 +244,7 @@ export const queryClient = new QueryClient({
 });
 const { trpcClient, useAuthStore } = createAuthClient({ url: apiUrl('trpc') });
 
+export { trpcClient };
 export const trpc = createTRPCOptionsProxy<AppRouter>({
   client: trpcClient,
   queryClient

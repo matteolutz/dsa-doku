@@ -13,6 +13,7 @@ import NotFoundPage from './pages/NotFound';
 import SectionsPage from './pages/Sections';
 import CreateDocPage from './pages/CreateDoc';
 import ViewPage from './pages/View';
+import DokuPage from './pages/Doku';
 
 const AuthRoute: FC<{ navigateTo?: string; element: React.ReactNode }> = ({
   navigateTo,
@@ -72,6 +73,8 @@ const App = () => {
           path="sections"
           element={<AcademyRoute element={<SectionsPage />} />}
         />
+
+        <Route path="doku" element={<AuthRoute element={<DokuPage />} />} />
 
         <Route path="doc">
           <Route

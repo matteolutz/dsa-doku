@@ -4,8 +4,11 @@ import z from 'zod';
 export * from '@prisma/client';
 
 export type SafeUser = Prisma.UserGetPayload<{ omit: { password: true } }>;
+export type AcademyWithCourses = Prisma.AcademyGetPayload<{
+  include: { courses: true };
+}>;
 
-export type DocumentType = (
+export type DocumentTypeWithoutAcademyId =
   | {
       type: typeof DocumentCategory.COURSE;
       courseId: number;
@@ -18,8 +21,9 @@ export type DocumentType = (
     }
   | {
       type: typeof DocumentCategory.KUMU;
-    }
-) & { academyId: number };
+    };
+
+export type DocumentType = DocumentTypeWithoutAcademyId & { academyId: number };
 
 export const DocumentFileMetaSchema = z.object({
   originalFileName: z.string(),
