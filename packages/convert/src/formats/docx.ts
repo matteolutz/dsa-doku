@@ -1,5 +1,9 @@
 import JSZip from 'jszip';
-import { ConversionInput, ConversionOutput } from '../types';
+import {
+  ConversionFnOptions,
+  ConversionInput,
+  ConversionOutput
+} from '../types';
 import { execFileAsync, readInputFile, splitPages } from '../utils';
 import { DOMParser, XMLSerializer } from 'xmldom';
 import fs from 'fs/promises';
@@ -49,10 +53,16 @@ class OfficeTraverser {
 // will be cleaned up in a future commit :)
 
 export const docxConversionFn = async (
-  input: ConversionInput
+  input: ConversionInput,
+  options?: ConversionFnOptions
 ): Promise<ConversionOutput> => {
   const inputBuffer = readInputFile(input.file);
   const zip = await JSZip.loadAsync(inputBuffer);
+
+  options?.onProgress?.({
+    progress: 0.2,
+    message: `Unzipping DOCX file`
+  });
 
   // page number adjustment
   const docXmlPath = 'word/document.xml';
@@ -71,6 +81,10 @@ export const docxConversionFn = async (
   const newDocxPath = path.join(input.options.tempDir, 'temp.docx');
   await fs.writeFile(newDocxPath, newDocx);
 
+  options?.onProgress?.({
+    progress: 0.4,
+    message: `Parsing DOCX file`
+  });
   const ast = await OfficeParser.parseOffice(newDocxPath, {
     includeBreakNodes: true
   });
@@ -79,6 +93,10 @@ export const docxConversionFn = async (
     JSON.stringify(ast, null, 2)
   );
 
+  options?.onProgress?.({
+    progress: 0.6,
+    message: `Extracting headings`
+  });
   const headings = [];
 
   const traverser = new OfficeTraverser(ast);
@@ -108,6 +126,10 @@ export const docxConversionFn = async (
     });
   }
 
+  options?.onProgress?.({
+    progress: 0.7,
+    message: `Converting to PDF`
+  });
   // convert docx to pdf
   await execFileAsync('soffice', [
     '--headless',
@@ -118,6 +140,10 @@ export const docxConversionFn = async (
     newDocxPath
   ]);
 
+  options?.onProgress?.({
+    progress: 0.9,
+    message: `Splitting PDF pages`
+  });
   const pages = await splitPages(
     path.join(input.options.tempDir, 'temp.pdf'),
     input.options.outDir

@@ -1,12 +1,17 @@
 import { MIME_TYPE_MAP } from './mime';
-import { ConversionInput, ConversionOutput } from './types';
+import {
+  ConversionFnOptions,
+  ConversionInput,
+  ConversionOutput
+} from './types';
 import path from 'path';
 import mime from 'mime';
 
 export * from './types';
 
 export const convertToPdfPages = async (
-  input: ConversionInput
+  input: ConversionInput,
+  options?: ConversionFnOptions
 ): Promise<ConversionOutput> => {
   let mimeType: string;
 
@@ -29,5 +34,5 @@ export const convertToPdfPages = async (
     throw new Error(`Unsupported file type: ${mimeType}`);
   }
 
-  return fn(input);
+  return fn(input, options);
 };

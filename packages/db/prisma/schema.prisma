@@ -55,6 +55,11 @@ model Academy {
   year    Int
   yearIdx Int
 
+  tnBeginDate DateTime
+  tnEndDate   DateTime
+
+  meta Json
+
   courses    Course[]
   academyALs AcademyAL[]
 

@@ -1,10 +1,15 @@
 import path from 'path';
-import { ConversionInput, ConversionOutput } from '../types';
+import {
+  ConversionFnOptions,
+  ConversionInput,
+  ConversionOutput
+} from '../types';
 import fs from 'fs/promises';
 import { splitPages } from '../utils';
 
 export const pdfConversionFn = async (
-  input: ConversionInput
+  input: ConversionInput,
+  options?: ConversionFnOptions
 ): Promise<ConversionOutput> => {
   let filePath;
   if ('path' in input.file) {
@@ -14,6 +19,10 @@ export const pdfConversionFn = async (
     await fs.writeFile(filePath, input.file.buffer);
   }
 
+  options?.onProgress?.({
+    progress: 0.5,
+    message: `Splitting PDF pages`
+  });
   const pages = await splitPages(filePath, input.options.outDir);
   return { pages, headings: [] };
 };

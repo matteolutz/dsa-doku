@@ -15,16 +15,22 @@ import { Spinner } from '@/components/ui/spinner';
 import dsaLogo from '@/assets/logos/dsa.png';
 import { motion } from 'framer-motion';
 
+export type DokuPageContext = {
+  goToPage: (page: number) => void;
+};
+
 export type DokuPageProps = {
   page: DokuOrderPage;
   absolutePageIndex?: number;
   side: 'left' | 'right';
+  context: DokuPageContext;
 };
 
 const DokuPageRenderer: FC<DokuPageProps> = ({
   page,
   absolutePageIndex,
-  side
+  side,
+  context
 }) => {
   const [containerRef, { width: containerWidth }] =
     useMeasure<HTMLDivElement>();
@@ -44,7 +50,7 @@ const DokuPageRenderer: FC<DokuPageProps> = ({
       case 'cover':
         return <DokuPageCover academyId={page.academyId} />;
       case 'toc':
-        return <DokuPageToc entries={page.entries} />;
+        return <DokuPageToc context={context} entries={page.entries} />;
       default:
         return null;
     }
@@ -146,7 +152,18 @@ const DokuPageCover: FC<{ academyId: number }> = ({ academyId }) => {
 
       {/* Date / Location */}
       <div className="mt-24 text-center text-[16px] leading-relaxed text-[#0B1220] font-serif">
-        <p>04.08. – 20.08.2022</p>
+        <p>
+          {academyQuery.data.tnBeginDate.toLocaleDateString('de-DE', {
+            day: '2-digit',
+            month: '2-digit'
+          })}{' '}
+          –{' '}
+          {academyQuery.data.tnEndDate.toLocaleDateString('de-DE', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+          })}
+        </p>
         <p>in der Jugendbildungsstätte</p>
         <p>Marstall Clemenswerth</p>
       </div>
@@ -159,12 +176,18 @@ const DokuPageCover: FC<{ academyId: number }> = ({ academyId }) => {
   );
 };
 
-const DokuPageToc: FC<{ entries: DokuTocRootEntry[] }> = ({ entries }) => {
+const DokuPageToc: FC<{
+  entries: DokuTocRootEntry[];
+  context: DokuPageContext;
+}> = ({ entries, context }) => {
   return (
     <div className="flex flex-col gap-10 px-16 py-20">
       {entries.map((entry) => (
         <div className="flex flex-col gap-1.5">
-          <div className="flex items-end gap-2">
+          <div
+            onClick={() => context.goToPage(entry.pageIndex)}
+            className="cursor-pointer flex items-end gap-2"
+          >
             <span className="whitespace-pre-line text-[15px] font-semibold leading-snug">
               {entry.name}
             </span>
@@ -177,7 +200,10 @@ const DokuPageToc: FC<{ entries: DokuTocRootEntry[] }> = ({ entries }) => {
             </span>
           </div>
           {entry.children.map((childEntry) => (
-            <div className="flex items-end gap-2">
+            <div
+              onClick={() => context.goToPage(childEntry.pageIndex)}
+              className="cursor-pointer flex items-end gap-2"
+            >
               <span className="truncate text-[13px] leading-snug">
                 {childEntry.name}
               </span>

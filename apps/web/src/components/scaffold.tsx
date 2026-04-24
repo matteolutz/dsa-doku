@@ -2,13 +2,7 @@ import { useLocation, useNavigate } from 'react-router';
 import Header from './fm/header';
 import { BottomNav } from './fm/bottomNav';
 
-import {
-  Layout,
-  User,
-  Home,
-  QuillWriteIcon,
-  Book
-} from '@hugeicons/core-free-icons';
+import { User, Home, QuillWriteIcon, Book } from '@hugeicons/core-free-icons';
 import type { IconSvgElement } from '@hugeicons/react';
 import { useQuery } from '@tanstack/react-query';
 import { trpc, useAuthStore } from '@/utils/trpc';

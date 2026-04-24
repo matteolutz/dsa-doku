@@ -1,6 +1,11 @@
 import type { AppRouter } from '@repo/trpc';
 import { QueryClient } from '@tanstack/react-query';
-import { createTRPCClient, httpBatchLink } from '@trpc/client';
+import {
+  createTRPCClient,
+  httpBatchLink,
+  httpSubscriptionLink,
+  splitLink
+} from '@trpc/client';
 import { observable } from '@trpc/server/observable';
 import { createTRPCOptionsProxy } from '@trpc/tanstack-react-query';
 import SuperJSON from 'superjson';
@@ -137,25 +142,32 @@ export function createAuthClient({ url }: { url: string }) {
   const trpcClient = createTRPCClient<AppRouter>({
     links: [
       authLink,
-      httpBatchLink({
-        url,
-        transformer: SuperJSON,
+      splitLink({
+        condition: (op) => op.type === 'subscription',
+        true: httpSubscriptionLink({
+          url,
+          transformer: SuperJSON
+        }),
+        false: httpBatchLink({
+          url,
+          transformer: SuperJSON,
 
-        headers: () => {
-          const headers: { [key: string]: string } = {};
+          headers: () => {
+            const headers: { [key: string]: string } = {};
 
-          const bearerToken = useAuthStore.getState().matchAuthState({
-            loggedIn: ({ accessToken }) => accessToken,
-            refreshing: (refreshToken) => refreshToken
-          });
+            const bearerToken = useAuthStore.getState().matchAuthState({
+              loggedIn: ({ accessToken }) => accessToken,
+              refreshing: (refreshToken) => refreshToken
+            });
 
-          if (bearerToken) {
-            console.log('Attaching auth headers.');
-            headers['authorization'] = `Bearer ${bearerToken}`;
+            if (bearerToken) {
+              console.log('Attaching auth headers.');
+              headers['authorization'] = `Bearer ${bearerToken}`;
+            }
+
+            return headers;
           }
-
-          return headers;
-        }
+        })
       })
     ]
   });

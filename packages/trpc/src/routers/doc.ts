@@ -1,6 +1,6 @@
 import z from 'zod';
 import { FileSystemService, procedure, router } from '..';
-import { convertToPdfPages } from '@repo/convert';
+import { ConversionFnProgress, convertToPdfPages } from '@repo/convert';
 import { DocumentTypeZod } from '../models/doc';
 import { requireUser } from '../utils/auth';
 import { ensureAccessToCourse } from '../utils/course';
@@ -13,11 +13,29 @@ import {
 import { ensureAccessToAcademy } from '../utils/academy';
 import { DocumentCategory, DocumentMeta } from '@repo/db/types';
 import { docAdded, getAllDocsOfType } from '../utils/doc';
+import unzipper from 'unzipper';
+import { searchFileRecursively } from '../utils/fs';
+import { EventEmitter, on } from 'events';
+
+const docConversionProgressEventEmitter = new EventEmitter();
 
 export const docRouter = router({
-  onEvent: procedure.subscription(async function* ({ ctx, input }) {
-    const user = requireUser(ctx);
-  }),
+  onConversionEvent: procedure
+    .input(z.object({ docId: z.string() }))
+    .subscription(async function* ({ input, signal }) {
+      // TODO: find way to authenticate user
+
+      for await (const [data] of on(
+        docConversionProgressEventEmitter,
+        input.docId,
+        {
+          signal
+        }
+      )) {
+        const progress = data as ConversionFnProgress;
+        yield progress;
+      }
+    }),
   getDocNonce: procedure
     .input(
       z.object({
@@ -201,13 +219,38 @@ export const docRouter = router({
         throw err;
       }
 
-      const inputFile = path.join(docFs.rootDir, input.originalFileName);
+      let inputFile = path.join(docFs.rootDir, input.originalFileName);
 
-      const conversionResult = await convertToPdfPages({
-        file: { path: inputFile },
-        removePageNumbers: input.containsPageNumbers,
-        options: { tempDir: docFs.tempDir, outDir: docFs.outDir }
-      });
+      if (path.extname(inputFile) === '.zip') {
+        // a zip file means we have to extract it first
+        const zipOutDir = path.join(docFs.rootDir, 'zip-out');
+
+        const directory = await unzipper.Open.file(inputFile);
+        await directory.extract({ path: zipOutDir });
+
+        // TODO: find a better way to do this
+        const mainTexFile = await searchFileRecursively(zipOutDir, 'main.tex');
+        if (mainTexFile === null)
+          throw fmError({
+            type: 'resource-not-found',
+            resource: 'doc-fs',
+            id: 'main.tex'
+          }).toTRPCError();
+
+        inputFile = mainTexFile;
+      }
+
+      const conversionResult = await convertToPdfPages(
+        {
+          file: { path: inputFile },
+          removePageNumbers: input.containsPageNumbers,
+          options: { tempDir: docFs.tempDir, outDir: docFs.outDir }
+        },
+        {
+          onProgress: (progress) =>
+            docConversionProgressEventEmitter.emit(input.docId, progress)
+        }
+      );
 
       const { orderIdx } = await docAdded(input.documentType);
 

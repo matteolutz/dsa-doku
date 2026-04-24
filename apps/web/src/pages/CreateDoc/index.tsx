@@ -7,7 +7,8 @@ import { Spinner } from '@/components/ui/spinner';
 import { apiUrl } from '@/utils/api';
 import { queryClient, trpc } from '@/utils/trpc';
 import { useMutation } from '@tanstack/react-query';
-import { useEffect, useEffectEvent } from 'react';
+import { useSubscription } from '@trpc/tanstack-react-query';
+import { useEffect, useEffectEvent, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate, useSearchParams } from 'react-router';
 
@@ -25,6 +26,25 @@ type FormInputs = {
 const CreateDocPage = () => {
   const [searchParams] = useSearchParams();
   const docType = JSON.parse(atob(searchParams.get('t') ?? '') || '{}');
+
+  const [newDocId, setNewDocId] = useState<string | null>(null);
+  const [currentProgress, setCurrentProgress] = useState<{
+    progress: number;
+    message: string;
+  } | null>(null);
+
+  useSubscription(
+    trpc.doc.onConversionEvent.subscriptionOptions(
+      {
+        docId: newDocId ?? ''
+      },
+      {
+        enabled: newDocId !== null,
+        onStarted: () => console.log('sub started'),
+        onData: (data) => setCurrentProgress(data)
+      }
+    )
+  );
 
   const createForm = useForm<FormInputs>();
 
@@ -77,6 +97,8 @@ const CreateDocPage = () => {
       }
     ).then((res) => res.json());
 
+    setNewDocId(docId);
+
     console.log(docType);
 
     await createDocMutation.mutateAsync({
@@ -91,7 +113,15 @@ const CreateDocPage = () => {
   };
 
   return (
-    <div className="size-full p-4 flex justify-center">
+    <div className="size-full p-4 flex justify-center relative">
+      <div
+        className="absolute top-0 left-0 h-1 bg-primary transition-transform w-full origin-left"
+        style={{
+          scale: currentProgress
+            ? `${Math.floor(currentProgress.progress * 100)}% 100%`
+            : '0 100%'
+        }}
+      />
       <div className="w-200 max-w-200 flex flex-col gap-4">
         <TypographyH2>Neues Dokument</TypographyH2>
         <form
@@ -144,7 +174,7 @@ const CreateDocPage = () => {
             type="submit"
             className="w-full"
           >
-            Erstellen
+            {currentProgress?.message ?? 'Erstellen'}
             {createForm.formState.isSubmitting && (
               <Spinner data-icon="inline-start" />
             )}
