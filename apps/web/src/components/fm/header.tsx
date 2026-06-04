@@ -22,16 +22,24 @@ const Header: FC<HeaderProps> = ({
   const navigate = useNavigate();
 
   return (
-    <div className="w-full border-b bg-card px-4 py-2 flex items-center justify-between gap-4">
-      <div className="flex gap-2 h-full items-center">
-        {showBackButton && (
-          <Button onClick={() => navigate(-1)} variant="ghost" size="icon">
-            <HugeiconsIcon icon={Back} />
-          </Button>
+    <div className="w-full border-b bg-card flex justify-center">
+      <div className="w-full max-w-5xl max-auto px-4 py-2 flex items-center justify-between gap-4">
+        <div className="flex gap-2 h-full items-center">
+          {showBackButton && (
+            <Button onClick={() => navigate(-1)} variant="ghost" size="icon">
+              <HugeiconsIcon icon={Back} />
+            </Button>
+          )}
+          {title ? (
+            <h1 className="font-semibold tracking-tight text-lg">{title}</h1>
+          ) : (
+            <div></div>
+          )}
+        </div>
+        {authState.isLoggedIn() && !disableAcademySelector && (
+          <AcademySelector />
         )}
-        {title ? <h1 className="text-xl">{title}</h1> : <div></div>}
       </div>
-      {authState.isLoggedIn() && !disableAcademySelector && <AcademySelector />}
     </div>
   );
 };

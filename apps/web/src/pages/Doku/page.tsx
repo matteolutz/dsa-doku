@@ -56,8 +56,6 @@ const DokuPageRenderer: FC<DokuPageProps> = ({
     }
   };
 
-  const shouldHaveInsetShadow = true;
-
   return (
     <motion.div
       layout
@@ -65,15 +63,15 @@ const DokuPageRenderer: FC<DokuPageProps> = ({
       initial={side === 'left' ? { x: -100, opacity: 0 } : undefined}
       animate={side === 'left' ? { x: 0, opacity: 1 } : undefined}
       exit={side === 'left' ? { x: -100, opacity: 0 } : undefined}
-      className="aspect-210/297 w-full max-w-200 bg-white relative"
+      className="aspect-210/297 w-full max-w-200 bg-white border border-border overflow-hidden rounded-xl relative @container"
       style={{
-        boxShadow: `${shouldHaveInsetShadow ? 'inset -15px -2px 20px 0px #dedbdb8b, ' : ''}0 0 12px 5px #dedbdb`
+        gridColumn: side === 'left' ? 1 : 2
       }}
       ref={containerRef}
     >
       {renderPage()}
       {typeof absolutePageIndex !== 'undefined' && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[2cqw]">
           {absolutePageIndex + 1}
         </div>
       )}
@@ -128,21 +126,21 @@ const DokuPageCover: FC<{ academyId: number }> = ({ academyId }) => {
 
   return (
     <div
-      className="relative flex w-full flex-col bg-white px-16 py-20"
+      className="relative flex w-full flex-col bg-white px-[10cqw] py-[12cqw]"
       style={{ aspectRatio: '1 / 1.414' }}
     >
       {/* Header logo */}
-      <div className="mb-28">
-        <img className="h-15" src={dsaLogo} />
+      <div className="mb-[10cqw] h-[10cqw]">
+        <img className="h-full" src={dsaLogo} />
       </div>
 
       {/* Title */}
-      <h1 className="text-center font-sans text-[40px] font-bold text-[#0B1220]">
+      <h1 className="text-center font-sans text-[8cqw] font-bold text-[#0B1220]">
         Deutsche SchülerAkademie
       </h1>
 
       {/* Subtitle */}
-      <div className="mt-24 text-center font-sans text-[20px] font-bold text-[#0B1220]">
+      <div className="mt-[10cqw] text-center font-sans text-[4cqw] font-bold text-[#0B1220]">
         <p>Dokumentation</p>
         <p>
           Akademie {academyQuery.data.location} {academyQuery.data.year}-
@@ -151,7 +149,7 @@ const DokuPageCover: FC<{ academyId: number }> = ({ academyId }) => {
       </div>
 
       {/* Date / Location */}
-      <div className="mt-24 text-center text-[16px] leading-relaxed text-[#0B1220] font-serif">
+      <div className="mt-[10cqw] text-center text-[3cqw] leading-relaxed text-[#0B1220] font-serif">
         <p>
           {academyQuery.data.tnBeginDate.toLocaleDateString('de-DE', {
             day: '2-digit',
@@ -169,7 +167,7 @@ const DokuPageCover: FC<{ academyId: number }> = ({ academyId }) => {
       </div>
 
       {/* Footer */}
-      <div className="mt-auto pt-24 text-center text-[15px] text-[#0B1220] font-serif">
+      <div className="mt-auto pt-[15cqw] text-center text-[2cqw] text-[#0B1220] font-serif">
         Bildung & Begabung gemeinnützige gGmbH
       </div>
     </div>
@@ -181,37 +179,37 @@ const DokuPageToc: FC<{
   context: DokuPageContext;
 }> = ({ entries, context }) => {
   return (
-    <div className="flex flex-col gap-10 px-16 py-20">
+    <div className="flex flex-col gap-[5cqw] px-[10cqw] py-[12cqw]">
       {entries.map((entry) => (
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-[0.2cqw]">
           <div
             onClick={() => context.goToPage(entry.pageIndex)}
-            className="cursor-pointer flex items-end gap-2"
+            className="cursor-pointer flex items-end gap-[1cqw]"
           >
-            <span className="whitespace-pre-line text-[15px] font-semibold leading-snug">
+            <span className="whitespace-pre-line text-[3cqw] font-semibold leading-snug">
               {entry.name}
             </span>
             <span
               aria-hidden
               className="mb-1.25 flex-1 border-b border-dotted border-current/60"
             />
-            <span className="whitespace-nowrap text-[13px]">
+            <span className="whitespace-nowrap text-[2cqw]">
               S.&nbsp;{entry.pageIndex + 1}
             </span>
           </div>
           {entry.children.map((childEntry) => (
             <div
               onClick={() => context.goToPage(childEntry.pageIndex)}
-              className="cursor-pointer flex items-end gap-2"
+              className="cursor-pointer flex items-end gap-[1cqw]"
             >
-              <span className="truncate text-[13px] leading-snug">
+              <span className="truncate text-[2cqw] leading-snug">
                 {childEntry.name}
               </span>
               <span
                 aria-hidden
                 className="mb-1 flex-1 border-b border-dotted border-current/60"
               />
-              <span className="whitespace-nowrap text-[13px]">
+              <span className="whitespace-nowrap text-[2cqw]">
                 S.&nbsp;{childEntry.pageIndex + 1}
               </span>
             </div>

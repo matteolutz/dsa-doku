@@ -78,7 +78,8 @@ export default defineConfig(({ mode }) => {
         'pwa-theme-color-foreground': requiredEnv(
           env,
           'VITE_APP_THEME_COLOR_FOREGROUND'
-        )
+        ),
+        'pwa-theme-color-soft': requiredEnv(env, 'VITE_APP_THEME_COLOR_SOFT')
       })
     ],
     resolve: {

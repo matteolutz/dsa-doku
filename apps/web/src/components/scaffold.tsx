@@ -80,16 +80,18 @@ const Scaffold = () => {
         title={TOP_LEVEL_ROUTES[activeTab]?.label}
       />
 
-      <div className="w-full mb-16 grow overflow-auto">
-        <Suspense fallback={<LoadingPage />}>
-          {meQuery.isFetched || meQuery.failureCount >= 1 ? (
-            <UserContextProivder value={userFetchingState}>
-              <AnimatedOutlet />
-            </UserContextProivder>
-          ) : (
-            <LoadingPage />
-          )}
-        </Suspense>
+      <div className="w-full grow overflow-auto">
+        <div className="w-full max-w-5xl mx-auto mb-16">
+          <Suspense fallback={<LoadingPage />}>
+            {meQuery.isFetched || meQuery.failureCount >= 1 ? (
+              <UserContextProivder value={userFetchingState}>
+                <AnimatedOutlet />
+              </UserContextProivder>
+            ) : (
+              <LoadingPage />
+            )}
+          </Suspense>
+        </div>
       </div>
 
       {isMainRoute && (

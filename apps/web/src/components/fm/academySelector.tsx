@@ -26,7 +26,7 @@ const AcademySelector = () => {
       }
       value={loggedInState.selectedAcademy?.toString()}
     >
-      <SelectTrigger className="w-60">
+      <SelectTrigger size="sm" className="w-60">
         <SelectValue placeholder="Akademie auswählen" />
       </SelectTrigger>
       <SelectContent>

@@ -27,7 +27,7 @@ export const BottomNav: FC<BottomNavProps> = ({
   return (
     <div className="fixed bottom-0 left-0 right-0 border-t bg-card">
       <nav
-        className="grid"
+        className="grid max-w-5xl mx-auto"
         style={{
           gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))`
         }}
