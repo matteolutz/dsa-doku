@@ -27,7 +27,7 @@ const ReorderList: React.FC<ReorderListProps> = ({
       data-slot="reorder-list-group"
       axis="y"
       className={cn(
-        'flex flex-col gap-1 select-none list-none !p-0 !m-0',
+        'flex flex-col gap-1 select-none list-none p-0! m-0!',
         className
       )}
       values={items}
@@ -61,7 +61,7 @@ const ReorderListItem: React.FC<{
       id={item?.key ?? ''}
       value={item}
       className={cn(
-        'bg-background list-none !p-0 !m-0',
+        'bg-background list-none p-0! m-0!',
         !withDragHandle ? 'cursor-grab' : '',
         className
       )}
