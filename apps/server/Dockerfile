@@ -1,6 +1,6 @@
 FROM node:22-bookworm-slim AS base
 ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
+ENV PATH="$PNPM_HOME:$PNPM_HOME/bin:$PATH"
 RUN corepack enable
 
 # make prisma happy
@@ -40,6 +40,7 @@ COPY --from=installer /app/packages/db/prisma ./packages/db/prisma/
 RUN pnpm --filter=@repo/db generate
 
 COPY --from=installer /app/packages/trpc/dist/ ./packages/trpc/dist/
+COPY --from=installer /app/packages/convert/dist/ ./packages/convert/dist/
 
 # Copy build artifacts from server application
 COPY --from=installer /app/apps/server/dist/ ./apps/server/dist/
