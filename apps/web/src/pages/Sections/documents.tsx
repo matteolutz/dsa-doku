@@ -6,6 +6,7 @@ import {
   ItemContent,
   ItemTitle
 } from '@/components/ui/item';
+import { Spinner } from '@/components/ui/spinner';
 import { useConfirmationModalContext } from '@/hooks/modal';
 import { queryClient, trpc } from '@/utils/trpc';
 import { Delete } from '@hugeicons/core-free-icons';
@@ -37,6 +38,16 @@ const AbstractDocuments: FC<AbstractDocumentsProps> = ({ documentType }) => {
     })
   );
 
+  const reorderDocumentsMutation = useMutation(
+    trpc.doc.reorder.mutationOptions({
+      onSuccess: () => {
+        return queryClient.invalidateQueries({
+          queryKey: trpc.doc.getAllOfType.queryKey({ documentType })
+        });
+      }
+    })
+  );
+
   const modalContext = useConfirmationModalContext();
 
   const deleteDocument = async (doc: Document) => {
@@ -51,19 +62,54 @@ const AbstractDocuments: FC<AbstractDocumentsProps> = ({ documentType }) => {
     await deleteDocumentMutation.mutateAsync({ docId: doc.id });
   };
 
+  // handle the reordering of documents. the new order is given as
+  // an array of document ids in the new order.
+  const handleDocumentReorder = (newOrder: string[]) => {
+    const docs = documentsQuery.data;
+    if (typeof docs === 'undefined') return;
+
+    reorderDocumentsMutation.mutate({ newOrder, docType: documentType });
+
+    // optimistically update our local state
+    const newDocs = [...docs];
+    for (const doc of newDocs) {
+      const newSortOrder = newOrder.indexOf(doc.id) ?? doc.sortOrder;
+      doc.sortOrder = newSortOrder;
+    }
+    newDocs.sort((a, b) => a.sortOrder - b.sortOrder);
+
+    queryClient.setQueryData(
+      trpc.doc.getAllOfType.queryKey({ documentType }),
+      () => newDocs
+    );
+  };
+
   if (typeof documentsQuery.data === 'undefined') return null;
 
   console.log(documentType, documentsQuery.data);
 
   return (
     <div className="w-full flex flex-col gap-2">
-      <ReorderList itemClassName="rounded-lg" withDragHandle>
+      <ReorderList
+        onReorderFinish={(newOrder) =>
+          handleDocumentReorder(
+            newOrder
+              .map(
+                (node) => (node.props as Record<string, unknown>)['data-docId']
+              )
+              .filter((id) => typeof id === 'string')
+          )
+        }
+        itemClassName="rounded-lg"
+        withDragHandle
+      >
         {documentsQuery.data.map((doc) => (
-          <Item variant="outline" size="sm" key={doc.id}>
+          <Item data-docId={doc.id} variant="outline" size="sm" key={doc.id}>
             <ItemContent>
               <ItemTitle>{doc.title}</ItemTitle>
             </ItemContent>
             <ItemActions>
+              {documentsQuery.isFetching && <Spinner />}
               <Button
                 onClick={() => deleteDocument(doc)}
                 variant="destructive"

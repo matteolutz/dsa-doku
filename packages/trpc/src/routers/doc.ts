@@ -11,7 +11,7 @@ import {
   generateReadDocumentNonce
 } from '../utils/nonce';
 import { ensureAccessToAcademy } from '../utils/academy';
-import { DocumentCategory, DocumentMeta } from '@repo/db/types';
+import { DocumentCategory, DocumentMeta, Prisma } from '@repo/db/types';
 import { docAdded, getAllDocsOfType } from '../utils/doc';
 import unzipper from 'unzipper';
 import { searchFileRecursively } from '../utils/fs';
@@ -172,6 +172,56 @@ export const docRouter = router({
         where: { id: input.docId }
       });
       await FileSystemService.instance.rmDocumentFs(doc.id);
+    }),
+  reorder: procedure
+    .input(
+      z.object({
+        docType: DocumentTypeZod,
+
+        /**
+         * The new order of the documents (containing all document ids of the given type)
+         */
+        newOrder: z.array(z.string())
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const user = requireUser(ctx);
+
+      // make sure we have write access to the documents of the specified type
+      // and also prepare the where clause for the update
+      let whereClause: Prisma.DocumentWhereInput;
+      switch (input.docType.type) {
+        case 'COURSE':
+          await ensureAccessToCourse(user, input.docType.courseId, 'write');
+          whereClause = {
+            category: 'COURSE',
+            courseId: input.docType.courseId
+          };
+          break;
+        default:
+          await ensureAccessToAcademy(user, input.docType.academyId, 'write');
+          whereClause = {
+            category: input.docType.type,
+            academyId: input.docType.academyId
+          };
+          break;
+      }
+
+      await ctx.prisma.$transaction(async (prisma) => {
+        for (let i = 0; i < input.newOrder.length; i++) {
+          const docId = input.newOrder[i]!;
+
+          await prisma.document.update({
+            where: {
+              ...whereClause,
+              id: docId
+            },
+            data: {
+              sortOrder: i
+            }
+          });
+        }
+      });
     }),
   create: procedure
     .input(
