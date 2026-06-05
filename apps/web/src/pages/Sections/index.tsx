@@ -17,21 +17,26 @@ const SectionsPage = () => {
 
   return (
     <div className="w-full p-4 flex justify-center">
-      <div className="w-200 max-w-200 flex flex-col gap-4">
-        <TypographyH2>Abschnitte</TypographyH2>
+      <div className="w-full flex flex-col gap-4">
+        <div className="flex flex-col">
+          <TypographyH2>Beiträge</TypographyH2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Verwalte die Reihenfolge und Dateien jedes Abschnitts.
+          </p>
+        </div>
 
-        <Card className="w-full p-4">
+        <Card className="w-full p-4 gap-3">
           <TypographyH4>Vorwort der Akademieleitung</TypographyH4>
           <AbstractDocuments documentType={{ type: 'AL_PREFACE', academyId }} />
         </Card>
 
-        <Card className="w-full p-4">
+        <Card className="w-full p-4 gap-3">
           <TypographyH4>KüMu</TypographyH4>
           <AbstractDocuments documentType={{ type: 'KUMU', academyId }} />
         </Card>
 
         {academyQuery.data?.courses.map((course) => (
-          <Card key={`course-${course.id}`} className="w-full p-4">
+          <Card key={`course-${course.id}`} className="w-full p-4 gap-3">
             <TypographyH4>
               {academyQuery.data?.yearIdx}.{course.courseIdx} {course.title}
             </TypographyH4>
@@ -41,7 +46,7 @@ const SectionsPage = () => {
           </Card>
         ))}
 
-        <Card className="w-full p-4">
+        <Card className="w-full p-4 gap-3">
           <TypographyH4>KüA</TypographyH4>
           <AbstractDocuments documentType={{ type: 'KUA', academyId }} />
         </Card>

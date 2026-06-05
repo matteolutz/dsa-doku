@@ -120,6 +120,7 @@ const RegisterPage = () => {
               disabled={registerMutation.isPending}
               type="submit"
               className="w-full"
+              size="lg"
             >
               Registrieren
               {registerMutation.isPending && (

@@ -24,7 +24,7 @@ export const TypographyH2 = forwardRef<
     ref={ref}
     {...props}
     className={cn(
-      'scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0',
+      'scroll-m-20 text-3xl font-semibold tracking-tight first:mt-0',
       props.className
     )}
   />
@@ -54,7 +54,7 @@ export const TypographyH4 = forwardRef<
     ref={ref}
     {...props}
     className={cn(
-      'scroll-m-20 text-xl font-semibold tracking-tight',
+      'scroll-m-20 text-lg font-semibold tracking-tight',
       props.className
     )}
   />

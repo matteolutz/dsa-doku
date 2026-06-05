@@ -4,12 +4,13 @@ import {
   Item,
   ItemActions,
   ItemContent,
+  ItemMedia,
   ItemTitle
 } from '@/components/ui/item';
 import { Spinner } from '@/components/ui/spinner';
 import { useConfirmationModalContext } from '@/hooks/modal';
 import { queryClient, trpc } from '@/utils/trpc';
-import { Delete } from '@hugeicons/core-free-icons';
+import { Delete, File, Plus } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import type { Document, DocumentType } from '@repo/db/types';
 import { useMutation, useQuery } from '@tanstack/react-query';
@@ -89,7 +90,7 @@ const AbstractDocuments: FC<AbstractDocumentsProps> = ({ documentType }) => {
   console.log(documentType, documentsQuery.data);
 
   return (
-    <div className="w-full flex flex-col gap-2">
+    <div className="w-full flex flex-col gap-3">
       <ReorderList
         onReorderFinish={(newOrder) =>
           handleDocumentReorder(
@@ -104,7 +105,12 @@ const AbstractDocuments: FC<AbstractDocumentsProps> = ({ documentType }) => {
         withDragHandle
       >
         {documentsQuery.data.map((doc) => (
-          <Item data-docId={doc.id} variant="outline" size="sm" key={doc.id}>
+          <Item data-docId={doc.id} variant="outline" size="xs" key={doc.id}>
+            <ItemMedia>
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-soft text-primary">
+                <HugeiconsIcon icon={File} className="h-4 w-4" />
+              </div>
+            </ItemMedia>
             <ItemContent>
               <ItemTitle>{doc.title}</ItemTitle>
             </ItemContent>
@@ -121,8 +127,18 @@ const AbstractDocuments: FC<AbstractDocumentsProps> = ({ documentType }) => {
           </Item>
         ))}
       </ReorderList>
-      <Button asChild>
+
+      {documentsQuery.data?.length === 0 && (
+        <div className="mb-2 text-center">
+          <p className="rounded-2xl border border-dashed border-border bg-background/40 p-6 text-center text-sm text-muted-foreground">
+            Keine Dokumente gefunden.
+          </p>
+        </div>
+      )}
+
+      <Button size="lg" asChild>
         <Link to={`/doc/create?t=${btoa(JSON.stringify(documentType))}`}>
+          <HugeiconsIcon icon={Plus} />
           Hinzufügen
         </Link>
       </Button>

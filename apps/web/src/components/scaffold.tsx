@@ -7,9 +7,13 @@ import type { IconSvgElement } from '@hugeicons/react';
 import { useQuery } from '@tanstack/react-query';
 import { trpc, useAuthStore } from '@/utils/trpc';
 import { UserContextProivder, type UserFetchingState } from '@/utils/auth';
-import { Suspense } from 'react';
+import { Suspense, type FC } from 'react';
 import LoadingPage from './fm/loadingPage';
 import AnimatedOutlet from './animatedOutlet';
+
+export type ScaffoldProps = {
+  naked?: boolean;
+};
 
 type TopLevelRoute = {
   label: string;
@@ -46,7 +50,7 @@ const TOP_LEVEL_ROUTES: Record<string, TopLevelRoute> = {
   }
 };
 
-const Scaffold = () => {
+const Scaffold: FC<ScaffoldProps> = ({ naked = false }) => {
   const authState = useAuthStore();
 
   const isLoggedIn = authState.isLoggedIn();
@@ -72,10 +76,24 @@ const Scaffold = () => {
         ? { state: 'loading' }
         : null;
 
+  if (naked) {
+    return (
+      <Suspense fallback={<LoadingPage />}>
+        {meQuery.isFetched || meQuery.failureCount >= 1 ? (
+          <UserContextProivder value={userFetchingState}>
+            <AnimatedOutlet />
+          </UserContextProivder>
+        ) : (
+          <LoadingPage />
+        )}
+      </Suspense>
+    );
+  }
+
   return (
     <div className="size-full flex flex-col overflow-hidden">
       <Header
-        showBackButton={!isMainRoute}
+        showBackButton={false}
         disableAcademySelector={!isMainRoute}
         title={TOP_LEVEL_ROUTES[activeTab]?.label}
       />

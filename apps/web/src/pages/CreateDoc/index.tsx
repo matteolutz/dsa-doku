@@ -1,116 +1,24 @@
-import { TypographyH2 } from '@/components/fm/typography';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Spinner } from '@/components/ui/spinner';
-import { apiUrl } from '@/utils/api';
-import { queryClient, trpc } from '@/utils/trpc';
-import { useMutation } from '@tanstack/react-query';
-import { useSubscription } from '@trpc/tanstack-react-query';
-import { useEffect, useEffectEvent, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { useNavigate, useSearchParams } from 'react-router';
+import { Check, ChevronLeft } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { useState } from 'react';
+import { Link, useSearchParams } from 'react-router';
+import { DOC_CREATION_METHODS, type DocCreationVariant } from './types';
+import { DocCreateFileForm } from './file';
+import { DocCreateJournalForm } from './journal';
 
 // mime types, for which we support renumbering
-const RENUMBERING_SUPPORT = [
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-];
-
-type FormInputs = {
-  file: FileList;
-  title: string;
-  containsPageNumbers: boolean;
-};
-
 const CreateDocPage = () => {
   const [searchParams] = useSearchParams();
   const docType = JSON.parse(atob(searchParams.get('t') ?? '') || '{}');
 
-  const [newDocId, setNewDocId] = useState<string | null>(null);
   const [currentProgress, setCurrentProgress] = useState<{
     progress: number;
     message: string;
   } | null>(null);
 
-  useSubscription(
-    trpc.doc.onConversionEvent.subscriptionOptions(
-      {
-        docId: newDocId ?? ''
-      },
-      {
-        enabled: newDocId !== null,
-        onStarted: () => console.log('sub started'),
-        onData: (data) => setCurrentProgress(data)
-      }
-    )
-  );
-
-  const createForm = useForm<FormInputs>();
-
-  const uploadedFileList = createForm.watch('file');
-  const uploadedFile =
-    uploadedFileList?.length > 0 ? uploadedFileList[0] : null;
-
-  const disableContainsPageNumbers = useEffectEvent(() =>
-    createForm.resetField('containsPageNumbers')
-  );
-  const setTitle = useEffectEvent((title: string) =>
-    createForm.setValue('title', title)
-  );
-  useEffect(() => {
-    if (!uploadedFile) return;
-
-    setTitle(uploadedFile.name);
-
-    if (!RENUMBERING_SUPPORT.includes(uploadedFile.type)) {
-      disableContainsPageNumbers();
-    }
-  }, [uploadedFile]);
-
-  const getNonceMutation = useMutation(
-    trpc.doc.getUploadNonce.mutationOptions()
-  );
-  const createDocMutation = useMutation(
-    trpc.doc.create.mutationOptions({
-      onSuccess: () => {
-        return queryClient.invalidateQueries({
-          queryKey: trpc.doc.getAll.queryKey()
-        });
-      }
-    })
-  );
-
-  const navigate = useNavigate();
-
-  const onSubmit = async (data: FormInputs) => {
-    const nonce = await getNonceMutation.mutateAsync();
-
-    const fileUploadData = new FormData();
-    fileUploadData.set('file', data.file[0]);
-
-    const { docId, originalFileName } = await fetch(
-      apiUrl(`fs/doc?nonce=${nonce}`),
-      {
-        method: 'POST',
-        body: fileUploadData
-      }
-    ).then((res) => res.json());
-
-    setNewDocId(docId);
-
-    console.log(docType);
-
-    await createDocMutation.mutateAsync({
-      docId,
-      originalFileName,
-      documentType: docType,
-      title: data.title,
-      containsPageNumbers: data.containsPageNumbers ?? false
-    });
-
-    navigate('/sections');
-  };
+  const [selectedCreationVariant, setSelectedCreationVariant] =
+    useState<DocCreationVariant>('docx');
 
   return (
     <div className="size-full p-4 flex justify-center relative">
@@ -122,64 +30,94 @@ const CreateDocPage = () => {
             : '0 100%'
         }}
       />
-      <div className="w-200 max-w-200 flex flex-col gap-4">
-        <TypographyH2>Neues Dokument</TypographyH2>
-        <form
-          onSubmit={createForm.handleSubmit(onSubmit)}
-          className="grid gap-4"
-        >
-          <div className="grid gap-2">
-            <Label htmlFor="file">Datei</Label>
-            <Input
-              id="file"
-              type="file"
-              required
-              {...createForm.register('file')}
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              type="text"
-              required
-              {...createForm.register('title')}
-            />
-          </div>
-          <div className="flex gap-2">
-            <Label htmlFor="containsPageNumbers">
-              Das Dokument enthält Seitenzahlen?
-            </Label>
-            <Controller
-              name="containsPageNumbers"
-              control={createForm.control}
-              render={({ field }) => (
-                <Checkbox
-                  id="containsPageNumbers"
-                  name={field.name}
-                  checked={field.value ?? false}
-                  onCheckedChange={(checked) =>
-                    field.onChange(checked == 'indeterminate' ? false : checked)
-                  }
-                  disabled={
-                    !!uploadedFile &&
-                    !RENUMBERING_SUPPORT.includes(uploadedFile.type)
-                  }
-                />
-              )}
-            />
-          </div>
-          <Button
-            disabled={createForm.formState.isSubmitting}
-            type="submit"
-            className="w-full"
-          >
-            {currentProgress?.message ?? 'Erstellen'}
-            {createForm.formState.isSubmitting && (
-              <Spinner data-icon="inline-start" />
-            )}
+      <div className="w-full flex flex-col gap-6">
+        <div className="flex items-center gap-3">
+          <Button size="icon" variant="outline" asChild>
+            <Link to="/sections">
+              <HugeiconsIcon icon={ChevronLeft} className="h-4 w-4" />
+            </Link>
           </Button>
-        </form>
+          <div>
+            <h2 className="text-2xl font-semibold tracking-tight">
+              Neues Dokument
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Wähle eine Quelle und ergänze die Details.
+            </p>
+          </div>
+        </div>
+
+        {/* Variant selector */}
+        <section>
+          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Quelle wählen
+          </h3>
+          <div className="grid gap-3 sm:grid-cols-3">
+            {Object.entries(DOC_CREATION_METHODS).map(([variant, method]) => {
+              const active = selectedCreationVariant === variant;
+
+              return (
+                <button
+                  key={variant}
+                  type="button"
+                  onClick={() => {
+                    setSelectedCreationVariant(variant as DocCreationVariant);
+                  }}
+                  className={`group relative flex flex-col items-start gap-3 rounded-3xl border bg-card p-4 text-left shadow-card transition ${
+                    active
+                      ? 'border-primary/60 ring-2 ring-primary/20'
+                      : 'border-border hover:border-primary/30'
+                  }`}
+                >
+                  <div
+                    className={`flex h-10 w-10 items-center justify-center rounded-2xl transition ${
+                      active
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-primary-soft text-primary'
+                    }`}
+                  >
+                    <HugeiconsIcon icon={method.icon} className="h-5 w-5" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold">{method.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {method.description}
+                    </p>
+                  </div>
+                  {active && (
+                    <span className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                      <HugeiconsIcon
+                        icon={Check}
+                        className="h-3 w-3"
+                        strokeWidth={3}
+                      />
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-border bg-card p-5 shadow-card sm:p-6">
+          {selectedCreationVariant === 'docx' ||
+          selectedCreationVariant === 'latex' ? (
+            <DocCreateFileForm
+              fileConfig={
+                DOC_CREATION_METHODS[selectedCreationVariant].fileConfig!
+              }
+              docType={docType}
+              setProgress={setCurrentProgress}
+              currentProgress={currentProgress}
+            />
+          ) : selectedCreationVariant === 'aka-journal' ? (
+            <DocCreateJournalForm
+              docType={docType}
+              setProgress={setCurrentProgress}
+              currentProgress={currentProgress}
+            />
+          ) : null}
+        </section>
       </div>
     </div>
   );

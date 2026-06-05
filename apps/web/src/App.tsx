@@ -14,6 +14,7 @@ import SectionsPage from './pages/Sections';
 import CreateDocPage from './pages/CreateDoc';
 import ViewPage from './pages/View';
 import DokuPage from './pages/Doku';
+import DokuPrintPage from './pages/Doku/print';
 
 const AuthRoute: FC<{ navigateTo?: string; element: React.ReactNode }> = ({
   navigateTo,
@@ -88,6 +89,14 @@ const App = () => {
         <Route path="view" element={<AcademyRoute element={<ViewPage />} />} />
 
         <Route path="*" element={<NotFoundPage />} />
+      </Route>
+
+      {/* Routes that require all the contexts provided by <Scaffold />, but not the header or navbar */}
+      <Route path="/print" element={<Scaffold naked />}>
+        <Route
+          path="doku"
+          element={<AuthRoute element={<DokuPrintPage />} />}
+        />
       </Route>
     </Routes>
   );

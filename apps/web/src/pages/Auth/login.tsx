@@ -81,6 +81,7 @@ const LoginPage = () => {
               disabled={loginMutation.isPending}
               type="submit"
               className="w-full"
+              size="lg"
             >
               Anmelden
               {loginMutation.isPending && <Spinner data-icon="inline-start" />}

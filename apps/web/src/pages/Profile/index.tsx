@@ -1,19 +1,26 @@
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+import { formatAcademyDateRange, formatAcademyName } from '@/utils/academy';
 import { useUser } from '@/utils/auth';
-import { useAuthStore } from '@/utils/trpc';
+import { trpc, useAuthStore, useNullableSelectedAcademy } from '@/utils/trpc';
 import {
   getInitials,
   userRoleToLongString,
   userRoleToString
 } from '@/utils/user';
-import { ChevronRight, Logout, Mail, Shield } from '@hugeicons/core-free-icons';
+import { Location, Logout, Mail, Shield } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon, type IconSvgElement } from '@hugeicons/react';
+import { useQuery } from '@tanstack/react-query';
 
 const ProfilePage = () => {
   const authState = useAuthStore();
   const user = useUser();
+
+  const selectedAcademy = useNullableSelectedAcademy();
+  console.log('selectedAcademy', selectedAcademy);
+  const academiesQuery = useQuery(trpc.academy.getSelectable.queryOptions());
 
   return (
     <div className="flex flex-col gap-8 p-8">
@@ -56,18 +63,18 @@ const ProfilePage = () => {
         <h3 className="px-1 pb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
           Akademien
         </h3>
-        <Card size="sm" className="flex-row px-4 justify-between items-center">
-          <div>
-            <p className="text-sm font-medium">Aktive Akademie</p>
-            <p className="text-xs text-muted-foreground">
-              Schwäbisch Gmünd 2026-1
-            </p>
-          </div>
-          <HugeiconsIcon
-            className="size-4 text-muted-foreground"
-            icon={ChevronRight}
-          />
-        </Card>
+        <ul className="overflow-hidden rounded-2xl border border-border bg-card shadow-card">
+          {academiesQuery.data?.map((academy) => (
+            <Row
+              className={cn(
+                academy.id === selectedAcademy && 'border border-primary-soft'
+              )}
+              icon={Location}
+              value={formatAcademyName(academy)}
+              subtitle={formatAcademyDateRange(academy)}
+            />
+          ))}
+        </ul>
       </section>
 
       <Button size="lg" className="w-min" onClick={() => authState.logout()}>
@@ -83,22 +90,38 @@ export default ProfilePage;
 const Row = ({
   icon,
   label,
-  value
+  value,
+  subtitle,
+  className
 }: {
-  icon: IconSvgElement;
-  label: string;
+  icon?: IconSvgElement;
+  label?: string;
   value: string;
+  subtitle?: string;
+  className?: string;
 }) => {
   return (
-    <li className="flex items-center gap-3 border-b border-border px-4 py-3.5 last:border-b-0">
-      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-soft text-primary">
-        <HugeiconsIcon icon={icon} className="h-4 w-4" />
-      </div>
+    <li
+      className={cn(
+        'flex items-center gap-3 border-b border-border px-4 py-3.5 last:border-b-0',
+        className
+      )}
+    >
+      {icon && (
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-soft text-primary">
+          <HugeiconsIcon icon={icon} className="h-4 w-4" />
+        </div>
+      )}
       <div className="min-w-0 flex-1">
-        <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
-          {label}
-        </p>
+        {label && (
+          <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
+            {label}
+          </p>
+        )}
         <p className="truncate text-sm font-medium">{value}</p>
+        {subtitle && (
+          <p className="text-xs text-muted-foreground">{subtitle}</p>
+        )}
       </div>
     </li>
   );

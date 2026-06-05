@@ -1,4 +1,4 @@
-import { useState, type FC } from 'react';
+import { useEffect, useState, type FC } from 'react';
 import type { DokuOrderPage, DokuTocRootEntry } from './order';
 import { useQuery } from '@tanstack/react-query';
 import { trpc } from '@/utils/trpc';
@@ -13,7 +13,7 @@ import 'react-pdf/dist/Page/AnnotationLayer.css';
 import { Spinner } from '@/components/ui/spinner';
 
 import dsaLogo from '@/assets/logos/dsa.png';
-import { motion } from 'framer-motion';
+import { formatAcademyDateRange } from '@/utils/academy';
 
 export type DokuPageContext = {
   goToPage: (page: number) => void;
@@ -24,16 +24,23 @@ export type DokuPageProps = {
   absolutePageIndex?: number;
   side: 'left' | 'right';
   context: DokuPageContext;
+
+  onLoad?: () => void;
 };
 
 const DokuPageRenderer: FC<DokuPageProps> = ({
   page,
   absolutePageIndex,
   side,
-  context
+  context,
+  onLoad
 }) => {
   const [containerRef, { width: containerWidth }] =
     useMeasure<HTMLDivElement>();
+
+  useEffect(() => {
+    if (page.type === 'blank') onLoad?.();
+  }, [onLoad, page.type]);
 
   const renderPage = () => {
     switch (page.type) {
@@ -43,27 +50,29 @@ const DokuPageRenderer: FC<DokuPageProps> = ({
             containerWidth={containerWidth}
             docId={page.docId}
             pageIndex={page.pageIndex}
+            onLoad={onLoad}
           />
         );
       case 'blank':
         return <div></div>;
       case 'cover':
-        return <DokuPageCover academyId={page.academyId} />;
+        return <DokuPageCover academyId={page.academyId} onLoad={onLoad} />;
       case 'toc':
-        return <DokuPageToc context={context} entries={page.entries} />;
+        return (
+          <DokuPageToc
+            context={context}
+            entries={page.entries}
+            onLoad={onLoad}
+          />
+        );
       default:
         return null;
     }
   };
 
   return (
-    <motion.div
-      layout
-      key={side}
-      initial={side === 'left' ? { x: -100, opacity: 0 } : undefined}
-      animate={side === 'left' ? { x: 0, opacity: 1 } : undefined}
-      exit={side === 'left' ? { x: -100, opacity: 0 } : undefined}
-      className="aspect-210/297 w-full max-w-200 bg-white border border-border overflow-hidden rounded-xl relative @container"
+    <div
+      className="aspect-210/297 w-full bg-white print:border-0 border border-border overflow-hidden rounded-xl relative @container"
       style={{
         gridColumn: side === 'left' ? 1 : 2
       }}
@@ -75,7 +84,7 @@ const DokuPageRenderer: FC<DokuPageProps> = ({
           {absolutePageIndex + 1}
         </div>
       )}
-    </motion.div>
+    </div>
   );
 };
 
@@ -85,8 +94,13 @@ const DokuPageFile: FC<{
   docId: string;
   pageIndex: number;
   containerWidth: number;
-}> = ({ docId, pageIndex, containerWidth }) => {
+  onLoad?: () => void;
+}> = ({ docId, pageIndex, containerWidth, onLoad }) => {
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!loading) onLoad?.();
+  }, [loading, onLoad]);
 
   const docNonceQuery = useQuery(
     trpc.doc.getDocNonce.queryOptions(
@@ -117,10 +131,17 @@ const DokuPageFile: FC<{
   );
 };
 
-const DokuPageCover: FC<{ academyId: number }> = ({ academyId }) => {
+const DokuPageCover: FC<{ academyId: number; onLoad?: () => void }> = ({
+  academyId,
+  onLoad
+}) => {
   const academyQuery = useQuery(
     trpc.academy.getWithCourses.queryOptions({ academyId })
   );
+
+  useEffect(() => {
+    if (academyQuery.data) onLoad?.();
+  }, [onLoad, academyQuery.data]);
 
   if (!academyQuery.data) return null;
 
@@ -135,12 +156,12 @@ const DokuPageCover: FC<{ academyId: number }> = ({ academyId }) => {
       </div>
 
       {/* Title */}
-      <h1 className="text-center font-sans text-[8cqw] font-bold text-[#0B1220]">
+      <h1 className="text-center font-sans text-[4cqw] font-bold text-[#0B1220]">
         Deutsche SchülerAkademie
       </h1>
 
       {/* Subtitle */}
-      <div className="mt-[10cqw] text-center font-sans text-[4cqw] font-bold text-[#0B1220]">
+      <div className="mt-[14cqw] text-center font-sans text-[3cqw] font-bold text-[#0B1220]">
         <p>Dokumentation</p>
         <p>
           Akademie {academyQuery.data.location} {academyQuery.data.year}-
@@ -149,25 +170,14 @@ const DokuPageCover: FC<{ academyId: number }> = ({ academyId }) => {
       </div>
 
       {/* Date / Location */}
-      <div className="mt-[10cqw] text-center text-[3cqw] leading-relaxed text-[#0B1220] font-serif">
-        <p>
-          {academyQuery.data.tnBeginDate.toLocaleDateString('de-DE', {
-            day: '2-digit',
-            month: '2-digit'
-          })}{' '}
-          –{' '}
-          {academyQuery.data.tnEndDate.toLocaleDateString('de-DE', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-          })}
-        </p>
+      <div className="mt-[14cqw] text-center text-[2cqw] leading-relaxed text-[#0B1220] font-serif">
+        <p>{formatAcademyDateRange(academyQuery.data)}</p>
         <p>in der Jugendbildungsstätte</p>
         <p>Marstall Clemenswerth</p>
       </div>
 
       {/* Footer */}
-      <div className="mt-auto pt-[15cqw] text-center text-[2cqw] text-[#0B1220] font-serif">
+      <div className="mt-auto text-center text-[2cqw] text-[#0B1220] font-serif">
         Bildung & Begabung gemeinnützige gGmbH
       </div>
     </div>
@@ -177,7 +187,10 @@ const DokuPageCover: FC<{ academyId: number }> = ({ academyId }) => {
 const DokuPageToc: FC<{
   entries: DokuTocRootEntry[];
   context: DokuPageContext;
-}> = ({ entries, context }) => {
+  onLoad?: () => void;
+}> = ({ entries, context, onLoad }) => {
+  useEffect(() => onLoad?.(), [onLoad]);
+
   return (
     <div className="flex flex-col gap-[5cqw] px-[10cqw] py-[12cqw]">
       {entries.map((entry) => (

@@ -276,6 +276,12 @@ export const useLoggedInState = (): [
   return [authState.state.data, authState.setLoggedInState];
 };
 
+export const useNullableSelectedAcademy = () => {
+  const [loggedInState] = useLoggedInState();
+
+  return loggedInState.selectedAcademy;
+};
+
 export const useSelectedAcademy = () => {
   const [loggedInState] = useLoggedInState();
   if (loggedInState.selectedAcademy === null)

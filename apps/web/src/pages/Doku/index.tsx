@@ -1,17 +1,19 @@
 import { trpc, useSelectedAcademy } from '@/utils/trpc';
 import { useQuery } from '@tanstack/react-query';
-import {
-  makeDokuOrder,
-  prependTableOfContents,
-  type DokuOrderPage
-} from './order';
+import { type DokuOrderPage } from './order';
 import DokuPageRenderer from './page';
 import { Button } from '@/components/ui/button';
 import LoadingPage from '@/components/fm/loadingPage';
-import { AnimatePresence, motion } from 'framer-motion';
-import { useSearchParams } from 'react-router';
-import { ChevronLeft, ChevronRight, Expand } from '@hugeicons/core-free-icons';
+import { useNavigate, useSearchParams } from 'react-router';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Expand,
+  Print
+} from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
+import { useAcademyDocsQuery } from './query';
+import { useState } from 'react';
 
 const DokuPage = () => {
   const academyId = useSelectedAcademy();
@@ -20,6 +22,9 @@ const DokuPage = () => {
   );
 
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  const [containerRef, setContainerRef] = useState<HTMLDivElement | null>(null);
 
   const currentSheet = Number(searchParams.get('p') ?? '0');
   const setCurrentSheet = (p: number) => {
@@ -34,31 +39,21 @@ const DokuPage = () => {
 
   const currentPage = (currentSheet - 1) * 2 + 1;
 
-  const allDocsQuery = useQuery(
-    trpc.doc.getAll.queryOptions(
-      { academyId },
-      {
-        enabled: !!academyQuery.data,
-        select: (data): DokuOrderPage[] => {
-          const order = makeDokuOrder(data, {
-            breakToEvenPageOnNewCategory: false
-          });
-          console.log('order', order);
-
-          const pages = prependTableOfContents(order, academyQuery.data!, {
-            tocStartingPageIndex: 2
-          });
-
-          console.log('pages', pages);
-
-          return [{ type: 'cover', academyId }, { type: 'blank' }, ...pages];
-        }
-      }
-    )
+  const allDocsQuery = useAcademyDocsQuery(
+    academyId,
+    academyQuery.data ?? null
   );
 
   const numPages = allDocsQuery.data?.length ?? 0;
   const numSheets = Math.ceil(numPages / 2) + 1;
+
+  const toggleFullscreen = () => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      containerRef?.requestFullscreen();
+    }
+  };
 
   if (!allDocsQuery.data) return <LoadingPage />;
 
@@ -67,31 +62,39 @@ const DokuPage = () => {
       ? allDocsQuery.data[page]
       : { type: 'blank' };
 
-  console.log('current sheet: ', currentSheet);
+  const _isFullscreen =
+    document.fullscreenElement !== null &&
+    document.fullscreenElement === containerRef;
 
   return (
     <div className="size-full flex flex-col p-4 gap-4">
       <div className="flex w-full justify-end items-center gap-2">
-        <Button variant="outline" size="icon">
+        <Button onClick={toggleFullscreen} variant="outline" size="icon">
           <HugeiconsIcon icon={Expand} />
+        </Button>
+
+        <Button
+          onClick={() => navigate('/print/doku')}
+          variant="outline"
+          size="icon"
+        >
+          <HugeiconsIcon icon={Print} />
         </Button>
       </div>
 
-      <div className="rounded-3xl border border-border bg-muted/40 p-3 shadow-soft sm:p-6">
-        <motion.div
-          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-          className="grid grid-cols-2 w-full gap-3 justify-center"
-        >
-          <AnimatePresence>
-            {currentPage > 0 && (
-              <DokuPageRenderer
-                context={{ goToPage }}
-                side="left"
-                page={getPage(currentPage)}
-                absolutePageIndex={currentPage}
-              />
-            )}
-          </AnimatePresence>
+      <div
+        ref={setContainerRef}
+        className="[&:fullscreen>*]:h-full [&:fullscreen>*]:flex rounded-3xl border border-border bg-muted/40 p-3 shadow-soft sm:p-6"
+      >
+        <div className="grid grid-cols-2 w-full gap-3 justify-center">
+          {currentPage > 0 && (
+            <DokuPageRenderer
+              context={{ goToPage }}
+              side="left"
+              page={getPage(currentPage)}
+              absolutePageIndex={currentPage}
+            />
+          )}
 
           <DokuPageRenderer
             context={{ goToPage }}
@@ -99,7 +102,7 @@ const DokuPage = () => {
             page={getPage(currentPage + 1)}
             absolutePageIndex={currentPage + 1}
           />
-        </motion.div>
+        </div>
       </div>
 
       <div className="w-full flex justify-between items-center gap-2 p-2">

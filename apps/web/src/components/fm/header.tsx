@@ -22,7 +22,7 @@ const Header: FC<HeaderProps> = ({
   const navigate = useNavigate();
 
   return (
-    <div className="w-full border-b bg-card flex justify-center">
+    <div className="w-full shrink-0 h-15 border-b bg-card flex justify-center">
       <div className="w-full max-w-5xl max-auto px-4 py-2 flex items-center justify-between gap-4">
         <div className="flex gap-2 h-full items-center">
           {showBackButton && (
