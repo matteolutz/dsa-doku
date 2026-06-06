@@ -19,7 +19,7 @@ export type FMErrorType =
     }
   | {
       type: 'resource-not-found';
-      resource: 'course' | 'uploaded-doc' | 'doc' | 'doc-fs';
+      resource: 'course' | 'uploaded-doc' | 'doc' | 'doc-fs' | 'academy';
       id: string | number;
     }
   | {
@@ -31,6 +31,10 @@ export type FMErrorType =
       type: 'document-type-mismatch';
       expected: DocumentMeta['type'];
       actual: DocumentMeta['type'];
+    }
+  | {
+      type: 'academy-feature-not-enabled';
+      feature: 'aka-journal';
     }
   | {
       type: 'todo';
@@ -58,6 +62,9 @@ export class FMError extends Error {
         code = 'BAD_REQUEST';
         break;
       case 'document-page-out-of-range':
+        code = 'BAD_REQUEST';
+        break;
+      case 'academy-feature-not-enabled':
         code = 'BAD_REQUEST';
         break;
       case 'todo':

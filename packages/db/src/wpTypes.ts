@@ -85,3 +85,62 @@ export interface WpPost {
   /** Custom fields */
   meta: Record<string, unknown>;
 }
+
+export interface WpAvatarUrls {
+  '24'?: string;
+  '48'?: string;
+  '96'?: string;
+
+  /** Allow custom avatar sizes */
+  [size: string]: string | undefined;
+}
+
+export interface WpUser {
+  /** Unique identifier */
+  id: number;
+
+  /** Login name (edit context only) */
+  username?: string;
+
+  /** Display information */
+  name: string;
+  first_name?: string;
+  last_name?: string;
+  nickname?: string;
+  slug: string;
+
+  /** Contact information */
+  email?: string;
+  url: string;
+
+  /** Profile */
+  description: string;
+  locale?: '' | 'en_US';
+
+  /** Public URLs */
+  link: string;
+
+  /** Registration date (edit context only) */
+  registered_date?: string;
+
+  /** Roles (edit context only) */
+  roles?: string[];
+
+  /**
+   * Password is accepted when creating/updating a user,
+   * but is never returned by the API.
+   */
+  password?: string;
+
+  /** Capabilities (edit context only) */
+  capabilities?: Record<string, boolean>;
+
+  /** Extra capabilities (edit context only) */
+  extra_capabilities?: Record<string, boolean>;
+
+  /** Avatar URLs keyed by size */
+  avatar_urls: WpAvatarUrls;
+
+  /** Custom user meta */
+  meta: Record<string, unknown>;
+}

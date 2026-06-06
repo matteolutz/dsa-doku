@@ -5,6 +5,7 @@ import {
   Calendar,
   Check,
   Newspaper,
+  Reload,
   Search,
   UserIcon
 } from '@hugeicons/core-free-icons';
@@ -12,87 +13,82 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { trpc } from '@/utils/trpc';
+import LoadingPage from '@/components/fm/loadingPage';
+import { SanitizeHtml } from '@/components/fm/sanitizeHtml';
+import { Spinner } from '@/components/ui/spinner';
 
-export type JournalArticle = {
-  id: string;
-  title: string;
-  author: string;
-  date: string;
-  excerpt: string;
+const htmlSanitationOptions = {
+  allowedTags: ['p', 'b', 'i', 'em', 'strong', 'a'],
+  allowedAttributes: {
+    a: ['href']
+  }
 };
 
-const journalArticles: JournalArticle[] = [
-  {
-    id: 'j1',
-    title: 'Spieltheorie in der Praxis – Ein Erfahrungsbericht',
-    author: 'Lena Hofmann',
-    date: '12. Mai 2026',
-    excerpt:
-      'Über zwei Wochen voller Nash-Gleichgewichte, Bluffs und überraschender Allianzen am See.'
-  },
-  {
-    id: 'j2',
-    title: 'Good Morning, Sunshine!',
-    author: 'Jonas Weber',
-    date: '04. Mai 2026',
-    excerpt:
-      'Warum die Morgenroutine das Herzstück jeder Akademie ist – und wie wir sie neu erfunden haben.'
-  },
-  {
-    id: 'j3',
-    title: 'KüMu: Ein Tag in der Küchen­mann­schaft',
-    author: 'Sarah Brandt',
-    date: '28. April 2026',
-    excerpt:
-      'Zwischen 80 hungrigen Mägen und einer Prise Wahnsinn – ein Blick hinter die Kulissen.'
-  },
-  {
-    id: 'j4',
-    title: 'Strategien & Reflexion – Was bleibt?',
-    author: 'Maximilian Götz',
-    date: '21. April 2026',
-    excerpt:
-      'Wie aus zwei Wochen Intensiv-Programm bleibende Erkenntnisse für den Alltag werden.'
-  }
-];
+export type DocJournalCreationProps = {
+  academyId: number;
+} & DocCreationMethodCommonProps;
 
-export type DocJournalCreationProps = {} & DocCreationMethodCommonProps;
-
-export const DocCreateJournalForm: FC<DocJournalCreationProps> = () => {
+export const DocCreateJournalForm: FC<DocJournalCreationProps> = ({
+  academyId
+}) => {
   const [search, setSearch] = useState('');
-  const [selectedArticle, setSelectedArticle] = useState<string | null>(null);
-  const filtered = journalArticles.filter((a) =>
-    a.title.toLowerCase().includes(search.toLowerCase())
-  );
+  const [selectedPost, setSelectedPost] = useState<number | null>(null);
 
-  const journalPosts = useQuery(trpc.journal.getPosts.queryOptions());
-  console.log('journalPosts', journalPosts.data);
+  const journalPostsQuery = useQuery(
+    trpc.journal.getPostsWithUserNames.queryOptions({ academyId })
+  );
+  const journalPosts = journalPostsQuery.data ?? null;
+
+  if (journalPosts === null) return <LoadingPage />;
+
+  console.log('journalPosts', journalPosts);
+
+  const filtered = journalPosts.filter(
+    (a) =>
+      a.title.rendered.toLowerCase().includes(search.toLowerCase()) ||
+      a.excerpt.rendered.toLocaleLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="space-y-5">
-      {/* Search */}
-      <div className="relative">
-        <HugeiconsIcon
-          icon={Search}
-          className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-        />
-        <Input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Artikel im Aka Journal suchen…"
-          className="w-full pl-11"
-        />
+      <div className="w-full flex gap-2 items-center">
+        {/* Search */}
+        <div className="w-full relative">
+          <HugeiconsIcon
+            icon={Search}
+            className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+          />
+          <Input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Artikel im Aka Journal suchen…"
+            className="w-full pl-11"
+          />
+        </div>
+
+        <Button
+          disabled={journalPostsQuery.isFetching}
+          onClick={() => journalPostsQuery.refetch()}
+          size="sm"
+          variant="outline"
+        >
+          {journalPostsQuery.isFetching ? (
+            <Spinner />
+          ) : (
+            <HugeiconsIcon icon={Reload} />
+          )}
+        </Button>
       </div>
 
       <ul className="space-y-2">
         {filtered.map((a) => {
-          const active = selectedArticle === a.id;
+          const active = selectedPost === a.id;
           return (
             <li key={a.id}>
               <button
                 type="button"
-                onClick={() => setSelectedArticle(a.id)}
+                onClick={() => setSelectedPost(a.id)}
                 className={`flex w-full items-start gap-3 rounded-2xl border bg-background/60 p-4 text-left transition ${
                   active
                     ? 'border-primary/60 ring-2 ring-primary/20'
@@ -109,19 +105,46 @@ export const DocCreateJournalForm: FC<DocJournalCreationProps> = () => {
                   <HugeiconsIcon icon={Newspaper} className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold">{a.title}</p>
-                  <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
-                    {a.excerpt}
-                  </p>
+                  <div className="truncate text-sm font-semibold">
+                    <SanitizeHtml
+                      dirty={a.title.rendered}
+                      options={htmlSanitationOptions}
+                    />
+                  </div>
+                  <div className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
+                    <SanitizeHtml
+                      dirty={a.excerpt.rendered}
+                      options={htmlSanitationOptions}
+                    />
+                  </div>
                   <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-                    <span className="inline-flex items-center gap-1">
-                      <HugeiconsIcon icon={UserIcon} className="h-3 w-3" />{' '}
-                      {a.author}
-                    </span>
-                    <span className="inline-flex items-center gap-1">
-                      <HugeiconsIcon icon={Calendar} className="h-3 w-3" />{' '}
-                      {a.date}
-                    </span>
+                    {a.authorName && (
+                      <span className="inline-flex items-center gap-1">
+                        <HugeiconsIcon icon={UserIcon} className="h-3 w-3" />{' '}
+                        {a.authorName}
+                      </span>
+                    )}
+                    {a.date && (
+                      <span className="inline-flex items-center gap-1">
+                        <HugeiconsIcon icon={Calendar} className="h-3 w-3" />{' '}
+                        {new Date(a.date).toLocaleDateString('de-DE', {
+                          day: '2-digit',
+                          month: 'long',
+                          year: 'numeric'
+                        })}
+                      </span>
+                    )}
+                    <Button
+                      onClick={(e) => e.stopPropagation()}
+                      asChild
+                      className="m-0 p-0 text-[11px]"
+                      size="sm"
+                      variant="link"
+                    >
+                      <a target="_blank" href={a.link}>
+                        Ansehen
+                      </a>
+                    </Button>
                   </div>
                 </div>
                 {active && (
@@ -145,7 +168,7 @@ export const DocCreateJournalForm: FC<DocJournalCreationProps> = () => {
       </ul>
 
       <Button
-        disabled={selectedArticle === null}
+        disabled={selectedPost === null}
         type="submit"
         className="w-full"
         size="lg"

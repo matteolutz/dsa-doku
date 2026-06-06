@@ -6,11 +6,20 @@ import { Link, useSearchParams } from 'react-router';
 import { DOC_CREATION_METHODS, type DocCreationVariant } from './types';
 import { DocCreateFileForm } from './file';
 import { DocCreateJournalForm } from './journal';
+import { trpc, useSelectedAcademy } from '@/utils/trpc';
+import { useQuery } from '@tanstack/react-query';
+import { isAkaJournalEnabled } from '@/utils/academy';
 
 // mime types, for which we support renumbering
 const CreateDocPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const docType = JSON.parse(atob(searchParams.get('t') ?? '') || '{}');
+
+  const academyId = useSelectedAcademy();
+  const academy = useQuery(
+    trpc.academy.getWithCourses.queryOptions({ academyId })
+  );
+  const akaJournalEnabled = academy.data && isAkaJournalEnabled(academy.data);
 
   const selectedCreationVariant = searchParams.get('v') ?? 'docx';
   const setSelectedCreationVariant = (variant: DocCreationVariant) => {
@@ -58,19 +67,22 @@ const CreateDocPage = () => {
           <div className="grid gap-3 sm:grid-cols-3">
             {Object.entries(DOC_CREATION_METHODS).map(([variant, method]) => {
               const active = selectedCreationVariant === variant;
+              const isDisabled =
+                variant === 'aka-journal' && !akaJournalEnabled;
 
               return (
                 <button
                   key={variant}
                   type="button"
                   onClick={() => {
+                    if (isDisabled) return;
                     setSelectedCreationVariant(variant as DocCreationVariant);
                   }}
                   className={`group relative flex flex-col items-start gap-3 rounded-3xl border bg-card p-4 text-left shadow-card transition ${
                     active
                       ? 'border-primary/60 ring-2 ring-primary/20'
                       : 'border-border hover:border-primary/30'
-                  }`}
+                  } ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <div
                     className={`flex h-10 w-10 items-center justify-center rounded-2xl transition ${
@@ -115,6 +127,7 @@ const CreateDocPage = () => {
             />
           ) : selectedCreationVariant === 'aka-journal' ? (
             <DocCreateJournalForm
+              academyId={academyId}
               docType={docType}
               setProgress={setCurrentProgress}
               currentProgress={currentProgress}
