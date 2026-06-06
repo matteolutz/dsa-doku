@@ -1,3 +1,5 @@
+import z from 'zod';
+
 export type WpPostStatus =
   | 'publish'
   | 'future'
@@ -144,3 +146,27 @@ export interface WpUser {
   /** Custom user meta */
   meta: Record<string, unknown>;
 }
+
+export const WpBlockSchema = z.object({
+  /**
+   * The block type (e.g. image, table, paragraph)
+   * This is inferred from the block's class
+   */
+  type: z.string(),
+
+  /**
+   * The blocks outer HTML (including the block container itself)
+   */
+  outerHTML: z.string(),
+
+  /**
+   * Heading metadata if the block is a heading
+   */
+  heading: z
+    .object({
+      text: z.string(),
+      level: z.number()
+    })
+    .optional()
+});
+export type WpBlock = z.infer<typeof WpBlockSchema>;

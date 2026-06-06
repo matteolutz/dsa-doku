@@ -15,6 +15,7 @@ import CreateDocPage from './pages/CreateDoc';
 import ViewPage from './pages/View';
 import DokuPage from './pages/Doku';
 import DokuPrintPage from './pages/Doku/print';
+import '@/assets/css/journal.css';
 
 const AuthRoute: FC<{ navigateTo?: string; element: React.ReactNode }> = ({
   navigateTo,

@@ -51,7 +51,7 @@ export const DocCreateFileForm: FC<DocFileCreationProps> = ({
     trpc.doc.getUploadNonce.mutationOptions()
   );
   const createDocMutation = useMutation(
-    trpc.doc.create.mutationOptions({
+    trpc.doc.createFile.mutationOptions({
       onSuccess: () => {
         return queryClient.invalidateQueries({
           queryKey: trpc.doc.getAll.queryKey()

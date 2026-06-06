@@ -14,6 +14,7 @@ import { Spinner } from '@/components/ui/spinner';
 
 import dsaLogo from '@/assets/logos/dsa.png';
 import { formatAcademyDateRange } from '@/utils/academy';
+import type { WpBlock } from '@repo/db/types';
 
 export type DokuPageContext = {
   goToPage: (page: number) => void;
@@ -53,6 +54,8 @@ const DokuPageRenderer: FC<DokuPageProps> = ({
             onLoad={onLoad}
           />
         );
+      case 'wp-page':
+        return <DokuWpPage wpBlocks={page.wpBlocks} onLoad={onLoad} />;
       case 'blank':
         return <div></div>;
       case 'cover':
@@ -89,6 +92,26 @@ const DokuPageRenderer: FC<DokuPageProps> = ({
 };
 
 export default DokuPageRenderer;
+
+const DokuWpPage: FC<{
+  wpBlocks: WpBlock[];
+  onLoad?: () => void;
+}> = ({ wpBlocks, onLoad }) => {
+  useEffect(() => {
+    if (onLoad) onLoad();
+  }, [wpBlocks, onLoad]);
+
+  return (
+    <div className="size-full flex flex-col gap-[5cqw] px-[10cqw] py-[12cqw] overflow-hidden">
+      {wpBlocks.map((block, index) => (
+        <div
+          key={index}
+          dangerouslySetInnerHTML={{ __html: block.outerHTML }}
+        />
+      ))}
+    </div>
+  );
+};
 
 const DokuPageFile: FC<{
   docId: string;

@@ -1,0 +1,11 @@
+@layer base {
+  .journal-wp-block-paragraph {
+    font-size: 2cqw;
+  }
+
+  .journal-wp-block-image img {
+    height: auto;
+    max-width: 100%;
+    vertical-align: bottom;
+  }
+}

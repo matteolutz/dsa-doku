@@ -2,7 +2,8 @@ import type {
   AcademyWithCourses,
   Document,
   DocumentMeta,
-  DocumentTypeWithoutAcademyId
+  DocumentTypeWithoutAcademyId,
+  WpBlock
 } from '@repo/db/types';
 
 export type DokuOrder = {
@@ -20,6 +21,10 @@ export type DokuOrderPage =
       type: 'file-page';
       docId: string;
       pageIndex: number;
+    }
+  | {
+      type: 'wp-page';
+      wpBlocks: WpBlock[];
     }
   | {
       type: 'blank';
@@ -97,7 +102,27 @@ export const makeDokuOrder = (
         currentCategoryPages += docMeta.meta.pages.length;
         break;
       case 'wp':
-        throw new Error('TODO: page counting for wp documents');
+        for (let i = 0; i < docMeta.meta.wpPostPaginatedBlocks.length; i++) {
+          const page = docMeta.meta.wpPostPaginatedBlocks[i];
+          orderPages.push({
+            type: 'wp-page',
+            wpBlocks: page
+          });
+
+          // find any h1's on this page
+          for (const block of page) {
+            if (typeof block.heading === 'undefined') continue;
+            if (block.heading.level !== 1) continue;
+
+            currentCategoryHeadings.push({
+              text: block.heading.text,
+              pageOffset: currentCategoryPages + i
+            });
+          }
+        }
+
+        currentCategoryPages += docMeta.meta.wpPostPaginatedBlocks.length;
+        break;
     }
 
     // if we have a next document

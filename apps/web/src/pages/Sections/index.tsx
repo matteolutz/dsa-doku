@@ -38,7 +38,10 @@ const SectionsPage = () => {
         {academyQuery.data?.courses.map((course) => (
           <Card key={`course-${course.id}`} className="w-full p-4 gap-3">
             <TypographyH4>
-              {academyQuery.data?.yearIdx}.{course.courseIdx} {course.title}
+              <span className="text-muted-foreground tracking-tight mr-2">
+                {academyQuery.data?.yearIdx}.{course.courseIdx}
+              </span>
+              {course.title}
             </TypographyH4>
             <AbstractDocuments
               documentType={{ type: 'COURSE', courseId: course.id, academyId }}

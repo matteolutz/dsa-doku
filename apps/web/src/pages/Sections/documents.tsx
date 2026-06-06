@@ -9,12 +9,24 @@ import {
 } from '@/components/ui/item';
 import { Spinner } from '@/components/ui/spinner';
 import { useConfirmationModalContext } from '@/hooks/modal';
+import { fetchJournalPostBlocks } from '@/utils/journal';
 import { queryClient, trpc } from '@/utils/trpc';
-import { Delete, File, Plus } from '@hugeicons/core-free-icons';
+import {
+  Delete,
+  File,
+  Plus,
+  Computer,
+  Refresh
+} from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
-import type { Document, DocumentType } from '@repo/db/types';
+import type {
+  Document,
+  DocumentWpMeta,
+  DocumentMeta,
+  DocumentType
+} from '@repo/db/types';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import type { FC } from 'react';
+import { useState, type FC } from 'react';
 import { Link } from 'react-router';
 
 export type AbstractDocumentsProps = {
@@ -105,26 +117,13 @@ const AbstractDocuments: FC<AbstractDocumentsProps> = ({ documentType }) => {
         withDragHandle
       >
         {documentsQuery.data.map((doc) => (
-          <Item data-docId={doc.id} variant="outline" size="xs" key={doc.id}>
-            <ItemMedia>
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-soft text-primary">
-                <HugeiconsIcon icon={File} className="h-4 w-4" />
-              </div>
-            </ItemMedia>
-            <ItemContent>
-              <ItemTitle>{doc.title}</ItemTitle>
-            </ItemContent>
-            <ItemActions>
-              {documentsQuery.isFetching && <Spinner />}
-              <Button
-                onClick={() => deleteDocument(doc)}
-                variant="destructive"
-                size="icon"
-              >
-                <HugeiconsIcon icon={Delete} />
-              </Button>
-            </ItemActions>
-          </Item>
+          <Document
+            doc={doc}
+            deleteDocument={deleteDocument}
+            documentType={documentType}
+            isFetching={documentsQuery.isFetching}
+            key={doc.id}
+          />
         ))}
       </ReorderList>
 
@@ -147,3 +146,100 @@ const AbstractDocuments: FC<AbstractDocumentsProps> = ({ documentType }) => {
 };
 
 export default AbstractDocuments;
+
+const Document: FC<{
+  doc: Document;
+  deleteDocument: (doc: Document) => void;
+  isFetching: boolean;
+  documentType: DocumentType;
+}> = ({ doc, deleteDocument, isFetching, documentType }) => {
+  const updateWpPostMutation = useMutation(
+    trpc.doc.updateJournal.mutationOptions({
+      onSuccess: async () => {
+        await queryClient.invalidateQueries({
+          queryKey: trpc.journal.getPost.queryKey({
+            wpPostId: (docMeta.meta as DocumentWpMeta).wpPostId
+          })
+        });
+        await queryClient.invalidateQueries({
+          queryKey: trpc.doc.getAllOfType.queryKey({ documentType })
+        });
+      }
+    })
+  );
+
+  const [isUpdating, setIsUpdating] = useState(false);
+  const updatePost = async () => {
+    setIsUpdating(true);
+
+    const { post, pages } = await fetchJournalPostBlocks(
+      (docMeta.meta as DocumentWpMeta).wpPostId ?? 0,
+      doc.academyId
+    );
+
+    await updateWpPostMutation.mutateAsync({
+      docId: doc.id,
+      title: post.title.rendered,
+      wpPostId: post.id,
+      wpPostLastModified: post.modified,
+      wpBlocks: pages,
+      wpPostLink: post.link
+    });
+    setIsUpdating(false);
+  };
+
+  const docMeta = doc.meta as DocumentMeta;
+
+  const wpPostQuery = useQuery(
+    trpc.journal.getPost.queryOptions(
+      {
+        wpPostId: (docMeta.meta as DocumentWpMeta).wpPostId ?? 0,
+        academyId: doc.academyId
+      },
+      {
+        enabled: docMeta.type === 'wp'
+      }
+    )
+  );
+
+  const isOutdated =
+    docMeta.type === 'wp' &&
+    wpPostQuery.data?.modified !==
+      (docMeta.meta as DocumentWpMeta).wpPostLastModified;
+
+  return (
+    <Item data-docId={doc.id} variant="outline" size="xs">
+      <ItemMedia>
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-soft text-primary">
+          <HugeiconsIcon
+            icon={(doc.meta as DocumentMeta).type === 'file' ? File : Computer}
+            className="h-4 w-4"
+          />
+        </div>
+      </ItemMedia>
+      <ItemContent>
+        <ItemTitle>{doc.title}</ItemTitle>
+      </ItemContent>
+      <ItemActions className="mr-10">
+        {isFetching && <Spinner />}
+        {isOutdated && (
+          <Button
+            onClick={updatePost}
+            disabled={isUpdating}
+            variant="outline"
+            size="sm"
+          >
+            {isUpdating ? <Spinner /> : <HugeiconsIcon icon={Refresh} />}
+          </Button>
+        )}
+        <Button
+          onClick={() => deleteDocument(doc)}
+          variant="destructive"
+          size="icon"
+        >
+          <HugeiconsIcon icon={Delete} />
+        </Button>
+      </ItemActions>
+    </Item>
+  );
+};

@@ -11,11 +11,13 @@ import {
 } from '@hugeicons/core-free-icons';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { useQuery } from '@tanstack/react-query';
-import { trpc } from '@/utils/trpc';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { queryClient, trpc } from '@/utils/trpc';
 import LoadingPage from '@/components/fm/loadingPage';
 import { SanitizeHtml } from '@/components/fm/sanitizeHtml';
 import { Spinner } from '@/components/ui/spinner';
+import { useNavigate } from 'react-router';
+import { fetchJournalPostBlocks } from '@/utils/journal';
 
 const htmlSanitationOptions = {
   allowedTags: ['p', 'b', 'i', 'em', 'strong', 'a'],
@@ -29,15 +31,52 @@ export type DocJournalCreationProps = {
 } & DocCreationMethodCommonProps;
 
 export const DocCreateJournalForm: FC<DocJournalCreationProps> = ({
-  academyId
+  academyId,
+  docType
 }) => {
   const [search, setSearch] = useState('');
   const [selectedPost, setSelectedPost] = useState<number | null>(null);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const navigate = useNavigate();
 
   const journalPostsQuery = useQuery(
     trpc.journal.getPostsWithUserNames.queryOptions({ academyId })
   );
   const journalPosts = journalPostsQuery.data ?? null;
+
+  const createJournalDocMutation = useMutation(
+    trpc.doc.createJournal.mutationOptions({
+      onSuccess: () =>
+        queryClient.invalidateQueries({
+          queryKey: trpc.doc.getAll.queryKey()
+        })
+    })
+  );
+
+  const submit = async () => {
+    if (selectedPost === null || isSubmitting) return;
+    setIsSubmitting(true);
+
+    const { post, pages } = await fetchJournalPostBlocks(
+      selectedPost,
+      academyId
+    );
+
+    await createJournalDocMutation.mutateAsync({
+      wpPostId: post.id,
+      wpPostLink: post.link,
+      wpPostLastModified: post.modified,
+      wpBlocks: pages,
+
+      title: post.title.rendered,
+
+      documentType: docType
+    });
+
+    navigate('/sections');
+  };
 
   if (journalPosts === null) return <LoadingPage />;
 
@@ -168,12 +207,13 @@ export const DocCreateJournalForm: FC<DocJournalCreationProps> = ({
       </ul>
 
       <Button
-        disabled={selectedPost === null}
+        onClick={submit}
+        disabled={selectedPost === null || isSubmitting}
         type="submit"
         className="w-full"
         size="lg"
       >
-        Erstellen
+        {isSubmitting && <Spinner />} Erstellen
       </Button>
     </div>
   );

@@ -1,8 +1,11 @@
 import { DocumentCategory, Prisma } from '@prisma/client';
 import z from 'zod';
+import { WpBlockSchema } from './wpTypes';
 
 export * from '@prisma/client';
+
 export * from './wpTypes';
+export { WpBlockSchema } from './wpTypes';
 
 export type SafeUser = Prisma.UserGetPayload<{ omit: { password: true } }>;
 export type AcademyWithCourses = Prisma.AcademyGetPayload<{
@@ -38,7 +41,12 @@ export const DocumentFileMetaSchema = z.object({
 });
 export type DocumentFileMeta = z.infer<typeof DocumentFileMetaSchema>;
 
-export const DocumentWpMetaSchema = z.object({});
+export const DocumentWpMetaSchema = z.object({
+  wpPostId: z.int(),
+  wpPostLink: z.string(),
+  wpPostPaginatedBlocks: z.array(z.array(WpBlockSchema)),
+  wpPostLastModified: z.string()
+});
 export type DocumentWpMeta = z.infer<typeof DocumentWpMetaSchema>;
 
 export const DocumentMetaSchema = z.discriminatedUnion('type', [
