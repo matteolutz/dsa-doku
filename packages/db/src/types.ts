@@ -2,6 +2,7 @@ import { DocumentCategory, Prisma } from '@prisma/client';
 import z from 'zod';
 
 export * from '@prisma/client';
+export * from './wpTypes';
 
 export type SafeUser = Prisma.UserGetPayload<{ omit: { password: true } }>;
 export type AcademyWithCourses = Prisma.AcademyGetPayload<{

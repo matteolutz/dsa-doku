@@ -3,6 +3,7 @@ import { academyRouter } from './academy';
 import { authRouter } from './auth';
 import { courseRouter } from './course';
 import { docRouter } from './doc';
+import { journalRouter } from './journal';
 import { userRouter } from './user';
 
 export const appRouter = router({
@@ -13,7 +14,8 @@ export const appRouter = router({
   user: userRouter,
   academy: academyRouter,
   course: courseRouter,
-  doc: docRouter
+  doc: docRouter,
+  journal: journalRouter
 });
 
 export type AppRouter = typeof appRouter;

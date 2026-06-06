@@ -10,6 +10,8 @@ import {
 } from '@hugeicons/core-free-icons';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { useQuery } from '@tanstack/react-query';
+import { trpc } from '@/utils/trpc';
 
 export type JournalArticle = {
   id: string;
@@ -62,6 +64,9 @@ export const DocCreateJournalForm: FC<DocJournalCreationProps> = () => {
   const filtered = journalArticles.filter((a) =>
     a.title.toLowerCase().includes(search.toLowerCase())
   );
+
+  const journalPosts = useQuery(trpc.journal.getPosts.queryOptions());
+  console.log('journalPosts', journalPosts.data);
 
   return (
     <div className="space-y-5">

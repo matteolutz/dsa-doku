@@ -9,16 +9,19 @@ import { DocCreateJournalForm } from './journal';
 
 // mime types, for which we support renumbering
 const CreateDocPage = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const docType = JSON.parse(atob(searchParams.get('t') ?? '') || '{}');
+
+  const selectedCreationVariant = searchParams.get('v') ?? 'docx';
+  const setSelectedCreationVariant = (variant: DocCreationVariant) => {
+    searchParams.set('v', variant);
+    setSearchParams(searchParams);
+  };
 
   const [currentProgress, setCurrentProgress] = useState<{
     progress: number;
     message: string;
   } | null>(null);
-
-  const [selectedCreationVariant, setSelectedCreationVariant] =
-    useState<DocCreationVariant>('docx');
 
   return (
     <div className="size-full p-4 flex justify-center relative">
