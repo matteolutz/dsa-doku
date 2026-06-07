@@ -13,7 +13,7 @@ import {
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { useAcademyDocsQuery } from './query';
-import { useState } from 'react';
+import { useEffect, useEffectEvent, useState } from 'react';
 
 const DokuPage = () => {
   const academyId = useSelectedAcademy();
@@ -37,6 +37,9 @@ const DokuPage = () => {
   const goToPage = (page: number) =>
     setCurrentSheet(Math.floor((page - 1) / 2) + 1);
 
+  const resetCurrentSheet = useEffectEvent(() => setCurrentSheet(0));
+  useEffect(() => resetCurrentSheet(), [academyId]);
+
   const currentPage = (currentSheet - 1) * 2 + 1;
 
   const allDocsQuery = useAcademyDocsQuery(
@@ -45,7 +48,7 @@ const DokuPage = () => {
   );
 
   const numPages = allDocsQuery.data?.length ?? 0;
-  const numSheets = Math.ceil(numPages / 2) + 1;
+  const numSheets = Math.floor(numPages / 2) + 1;
 
   const toggleFullscreen = () => {
     if (document.fullscreenElement) {
@@ -62,9 +65,11 @@ const DokuPage = () => {
       ? allDocsQuery.data[page]
       : { type: 'blank' };
 
-  const _isFullscreen =
+  /*
+  const isFullscreen =
     document.fullscreenElement !== null &&
     document.fullscreenElement === containerRef;
+    */
 
   return (
     <div className="size-full flex flex-col p-4 gap-4">
@@ -119,10 +124,7 @@ const DokuPage = () => {
             />
           ))}
         </div>
-        <Button
-          disabled={currentPage === allDocsQuery.data.length - 1}
-          onClick={nextSheet}
-        >
+        <Button disabled={currentSheet === numSheets - 1} onClick={nextSheet}>
           <HugeiconsIcon icon={ChevronRight} /> Next
         </Button>
       </div>

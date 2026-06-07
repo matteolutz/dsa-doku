@@ -15,6 +15,7 @@ import { Spinner } from '@/components/ui/spinner';
 import dsaLogo from '@/assets/logos/dsa.png';
 import { formatAcademyDateRange } from '@/utils/academy';
 import type { WpBlock } from '@repo/db/types';
+import { JournalAudioPlayer } from './wp/audio';
 
 export type DokuPageContext = {
   goToPage: (page: number) => void;
@@ -93,6 +94,23 @@ const DokuPageRenderer: FC<DokuPageProps> = ({
 
 export default DokuPageRenderer;
 
+const DokuWpMedia: FC<{
+  media: NonNullable<WpBlock['media']>;
+}> = ({ media }) => {
+  switch (media.type) {
+    case 'audio':
+      return (
+        <JournalAudioPlayer
+          title="Test Audio"
+          author="Matteo Lutz"
+          src={media.src}
+        />
+      );
+    default:
+      return null;
+  }
+};
+
 const DokuWpPage: FC<{
   wpBlocks: WpBlock[];
   onLoad?: () => void;
@@ -102,13 +120,17 @@ const DokuWpPage: FC<{
   }, [wpBlocks, onLoad]);
 
   return (
-    <div className="size-full flex flex-col gap-[5cqw] px-[10cqw] py-[12cqw] overflow-hidden">
-      {wpBlocks.map((block, index) => (
-        <div
-          key={index}
-          dangerouslySetInnerHTML={{ __html: block.outerHTML }}
-        />
-      ))}
+    <div className="size-full flex flex-col gap-[1cqw] px-[10cqw] py-[10cqw] overflow-hidden journal-wp-page">
+      {wpBlocks.map((block, index) =>
+        block.media ? (
+          <DokuWpMedia media={block.media} />
+        ) : (
+          <div
+            key={index}
+            dangerouslySetInnerHTML={{ __html: block.outerHTML }}
+          />
+        )
+      )}
     </div>
   );
 };

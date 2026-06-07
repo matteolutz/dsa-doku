@@ -167,6 +167,16 @@ export const WpBlockSchema = z.object({
       text: z.string(),
       level: z.number()
     })
+    .optional(),
+
+  /**
+   * Media metadata if the block is a media block (i.e. audio, video, ...)
+   */
+  media: z
+    .object({
+      type: z.enum(['audio', 'video']),
+      src: z.string()
+    })
     .optional()
 });
 export type WpBlock = z.infer<typeof WpBlockSchema>;

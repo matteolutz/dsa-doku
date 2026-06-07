@@ -114,6 +114,8 @@ export const makeDokuOrder = (
             if (typeof block.heading === 'undefined') continue;
             if (block.heading.level !== 1) continue;
 
+            // TODO: strip of any heading numbering
+
             currentCategoryHeadings.push({
               text: block.heading.text,
               pageOffset: currentCategoryPages + i

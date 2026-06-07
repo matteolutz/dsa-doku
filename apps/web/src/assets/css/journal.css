@@ -1,11 +1,75 @@
 @layer base {
-  .journal-wp-block-paragraph {
-    font-size: 2cqw;
-  }
+  .journal-wp-page {
+    font-size: 1.75cqw;
+    font-family: 'Times New Roman', Times, serif;
+    text-wrap: pretty;
 
-  .journal-wp-block-image img {
-    height: auto;
-    max-width: 100%;
-    vertical-align: bottom;
+    /*
+    .journal-wp-block-paragraph { }
+    */
+
+    .journal-wp-block-code {
+      background-color: #fdf6e3;
+
+      border-top-width: 0.1cqw;
+      border-bottom-width: 0.1cqw;
+      border-color: black;
+
+      padding: 1cqw;
+    }
+
+    .journal-wp-block-list {
+      list-style-type: disc;
+      padding-inline-start: 5cqw;
+    }
+
+    /* Layouts */
+    .journal-wp-block-columns {
+      width: 100%;
+
+      .journal-wp-block-column {
+        flex-grow: 1;
+        overflow-wrap: break-word;
+        word-break: break-word;
+      }
+    }
+
+    .journal-is-layout-flex {
+      display: flex;
+    }
+
+    /* Headings */
+    .journal-wp-block-heading {
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    h1.journal-wp-block-heading {
+      font-size: 2.5cqw;
+      font-weight: 700;
+
+      margin-top: 0.5cqw;
+    }
+
+    h2.journal-wp-block-heading {
+      font-size: 2.25cqw;
+      font-weight: 600;
+      margin-top: 0.25cqw;
+    }
+
+    h3.journal-wp-block-heading {
+      font-size: 2cqw;
+      font-weight: 500;
+    }
+
+    /* Media */
+    .journal-wp-block-image img {
+      height: auto;
+      max-width: 100%;
+      vertical-align: bottom;
+    }
+
+    .journal-wp-block-audio {
+      font-family: Arial, Helvetica, sans-serif;
+    }
   }
 }

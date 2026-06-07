@@ -2,9 +2,50 @@ import type { WpBlock } from '@repo/db/types';
 import sanitize from 'sanitize-html';
 import { trpcClient } from './trpc';
 
+const MATH_ML_TAGS = [
+  'annotation-xml',
+  'annotation',
+  'maction',
+  'math',
+  'menclose',
+  'merror',
+  'mfenced',
+  'mfrac',
+  'mi',
+  'mmultiscripts',
+  'mn',
+  'mo',
+  'mover',
+  'mpadded',
+  'mphantom',
+  'mprescripts',
+  'mroot',
+  'mrow',
+  'ms',
+  'mspace',
+  'msqrt',
+  'mstyle',
+  'msub',
+  'msubsup',
+  'msup',
+  'mtable',
+  'mtd',
+  'mtext',
+  'mtr',
+  'munder',
+  'munderover',
+  'semantics'
+];
+
 export const sanitizeJournalBlock = (outerHTML: string) =>
   sanitize(outerHTML, {
-    allowedTags: sanitize.defaults.allowedTags.concat(['img']),
+    allowedTags: sanitize.defaults.allowedTags.concat([
+      'img',
+      'audio',
+      'details',
+      'summary',
+      ...MATH_ML_TAGS
+    ]),
     allowedAttributes: false,
     transformTags: {
       '*': (tagName, attribs) => {
@@ -37,7 +78,7 @@ export const paginateJournalBlocks = async (
   parent.style.position = 'absolute';
   document.body.appendChild(parent);
 
-  const pageHeightLimit = 250;
+  const pageHeightLimit = 230;
 
   let currentPage = [];
   const pages = [];
@@ -49,11 +90,17 @@ export const paginateJournalBlocks = async (
   };
 
   for (const block of blocks) {
+    if (block.type === 'pagebreak') {
+      pages.push(currentPage);
+      currentPage = [];
+      continue;
+    }
+
     parent.innerHTML += block.outerHTML;
     const newBlock = parent.children[parent.children.length - 1] as HTMLElement;
 
     // fix pixel sizes to use cqw units
-    const styledElements = newBlock.querySelectorAll('[style]');
+    const styledElements = [newBlock, ...newBlock.querySelectorAll('[style]')];
     for (const styledElement of styledElements) {
       const style = styledElement.getAttribute('style');
       if (!style) continue;
@@ -69,11 +116,37 @@ export const paginateJournalBlocks = async (
 
     // certain block types need special handling.
     // first of all, media content needs to be awaited
-    if (block.type === 'image') {
-      const img = newBlock.querySelector('img');
-      if (img) {
-        await new Promise((resolve) => (img.onload = resolve));
+    switch (block.type) {
+      case 'image': {
+        const img = newBlock.querySelector('img');
+        if (img) {
+          await new Promise((resolve) => (img.onload = resolve));
+        }
+        break;
       }
+      case 'details': {
+        // we need to make sure to render the details content openend to take its
+        // height into account
+        const details = newBlock as HTMLDetailsElement;
+        details.open = true;
+        break;
+      }
+      case 'audio': {
+        const audio = newBlock.querySelector('audio');
+        if (audio) {
+          block.media = { type: 'audio', src: audio.getAttribute('src') ?? '' };
+        }
+        break;
+      }
+      case 'video': {
+        const video = newBlock.querySelector('video');
+        if (video) {
+          block.media = { type: 'video', src: video.getAttribute('src') ?? '' };
+        }
+        break;
+      }
+      default:
+        break;
     }
 
     // with this new block we overflowed
@@ -106,19 +179,32 @@ export const fetchJournalPostBlocks = async (
     wpPostId: postId,
     academyId
   });
+
   const parser = new DOMParser();
   const postDoc = parser.parseFromString(post.content.rendered, 'text/html');
+
+  console.log('post doc', postDoc);
 
   const blockClassNameRegex = /wp-block-([a-z-]+)/;
   const headings = ['h1', 'h2', 'h3', 'h4', 'h5'];
 
-  const postBlocks = Array.from(postDoc.body.children)
+  const postBlocks = Array.from(postDoc.body.childNodes)
     .map((child) => {
+      if (child.nodeType === 8) {
+        switch (child.textContent) {
+          case 'nextpage':
+            return { type: 'pagebreak', outerHTML: '' };
+          default:
+            return null;
+        }
+      } else if (!(child instanceof HTMLElement)) return null;
+
       const className = child.className;
       const match = className.match(blockClassNameRegex);
       if (match === null) return null;
 
       const cleanHtml = sanitizeJournalBlock(child.outerHTML);
+      console.log('dirty', child.outerHTML, 'sanitized', cleanHtml);
 
       let heading = undefined;
       const headingIdx = headings.indexOf(child.tagName.toLocaleLowerCase());
