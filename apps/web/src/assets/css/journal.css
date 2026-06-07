@@ -8,6 +8,10 @@
     .journal-wp-block-paragraph { }
     */
 
+    .journal-wp-sans {
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
     .journal-wp-block-code {
       background-color: #fdf6e3;
 

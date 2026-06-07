@@ -1,12 +1,15 @@
 import { Pause, Play, Volume, VolumeX } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { useEffect, useRef, useState, type FC } from 'react';
+import { JournalPrintMediaLink } from './media';
 
 type JournalAudioPlayerProps = {
   src: string;
   title?: string;
   author?: string;
 };
+
+export const JOURNAL_AUDIO_PLAYER_CQW_HEIGHT = 9;
 
 /**
  * Minimal, serif-styled audio player sized in `cqw` units so it scales with
@@ -66,7 +69,12 @@ export const JournalAudioPlayer: FC<JournalAudioPlayerProps> = ({
   const pct = duration ? (current / duration) * 100 : 0;
 
   return (
-    <div className="journal-wp-block-audio border border-border rounded-md bg-card my-[1cqw] px-[2cqw] py-[1cqw] flex flex-col gap-[2cqw] w-full">
+    <div
+      style={{
+        height: `${JOURNAL_AUDIO_PLAYER_CQW_HEIGHT}cqw`
+      }}
+      className="journal-wp-block-audio border border-border rounded-md bg-card px-[2cqw] py-[1cqw] flex flex-col gap-[2cqw] w-full"
+    >
       <audio ref={ref} src={src} muted={muted} preload="metadata" />
       <div className="flex items-center gap-[2.5cqw]">
         <button
@@ -82,7 +90,7 @@ export const JournalAudioPlayer: FC<JournalAudioPlayerProps> = ({
           />
         </button>
 
-        <div className="grid print:grid-rows-1 grid-rows-3 grid-cols-1 justify-center gap-[0.5cqw] h-[6cqw] flex-1">
+        <div className="grid print:grid-rows-2 grid-rows-3 grid-cols-1 justify-center gap-[0.5cqw] h-full flex-1">
           <div className="flex gap-[2cqw] items-end print:items-center leading-0">
             {title && (
               <span className="font-semibold print:text-[3cqw] tracking-tight">
@@ -95,6 +103,7 @@ export const JournalAudioPlayer: FC<JournalAudioPlayerProps> = ({
               </span>
             )}
           </div>
+          <JournalPrintMediaLink media={{ type: 'audio', src }} />
           <div className="print:hidden relative shrink-0 h-[0.5cqw] bg-[#1a1a1a20] self-center rounded-lg">
             <div
               className="absolute inset-0 bg-black rounded-lg"

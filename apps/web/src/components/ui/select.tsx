@@ -4,11 +4,9 @@ import { Select as SelectPrimitive } from 'radix-ui';
 import { cn } from '@/lib/utils';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
-  UnfoldMoreIcon,
   Tick02Icon,
   ArrowUp01Icon,
   ArrowDown01Icon,
-  ChevronsDown,
   ChevronDown
 } from '@hugeicons/core-free-icons';
 

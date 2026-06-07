@@ -1,6 +1,7 @@
 import type { WpBlock } from '@repo/db/types';
 import sanitize from 'sanitize-html';
 import { trpcClient } from './trpc';
+import { JOURNAL_AUDIO_PLAYER_CQW_HEIGHT } from '@/pages/Doku/wp/audio';
 
 const MATH_ML_TAGS = [
   'annotation-xml',
@@ -136,6 +137,9 @@ export const paginateJournalBlocks = async (
         if (audio) {
           block.media = { type: 'audio', src: audio.getAttribute('src') ?? '' };
         }
+        // we need to take into account, that the audio player will be rendered by react
+        // and has a fixed height
+        newBlock.style.height = `${JOURNAL_AUDIO_PLAYER_CQW_HEIGHT}cqw`;
         break;
       }
       case 'video': {
