@@ -59,7 +59,16 @@ const App = () => {
         <Route path="home" element={<AuthRoute element={<HomePage />} />} />
 
         <Route path="profile">
-          <Route index element={<AuthRoute element={<ProfilePage />} />} />
+          <Route
+            index
+            element={
+              isLoggedIn ? (
+                <AuthRoute element={<ProfilePage />} />
+              ) : (
+                <Navigate to="./login" />
+              )
+            }
+          />
 
           <Route
             path="register"
