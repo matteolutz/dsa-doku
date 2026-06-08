@@ -170,7 +170,7 @@ const DokuPageFile: FC<{
         </div>
       )}
       <Document file={pageUrl} onLoadSuccess={() => setLoading(false)}>
-        <Page pageNumber={1} width={containerWidth} />
+        <Page devicePixelRatio={2} pageNumber={1} width={containerWidth} />
       </Document>
     </>
   );
