@@ -15,7 +15,6 @@ import CreateDocPage from './pages/CreateDoc';
 import ViewPage from './pages/View';
 import DokuPage from './pages/Doku';
 import DokuPrintPage from './pages/Doku/print';
-import '@/assets/css/journal.css';
 
 const AuthRoute: FC<{ navigateTo?: string; element: React.ReactNode }> = ({
   navigateTo,
@@ -101,7 +100,7 @@ const App = () => {
         <Route path="*" element={<NotFoundPage />} />
       </Route>
 
-      {/* Routes that require all the contexts provided by <Scaffold />, but not the header or navbar */}
+      {/* Routes that require all the contexts provided by <Scaffold />, but not the header or navbar (i.e. "naked" scaffold) */}
       <Route path="/print" element={<Scaffold naked />}>
         <Route
           path="doku"

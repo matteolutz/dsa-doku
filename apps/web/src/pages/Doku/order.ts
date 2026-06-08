@@ -114,8 +114,6 @@ export const makeDokuOrder = (
             if (typeof block.heading === 'undefined') continue;
             if (block.heading.level !== 1) continue;
 
-            // TODO: strip of any heading numbering
-
             currentCategoryHeadings.push({
               text: block.heading.text,
               pageOffset: currentCategoryPages + i
@@ -197,25 +195,25 @@ export const prependTableOfContents = (
   academy: AcademyWithCourses,
   config: { tocStartingPageIndex: number }
 ): DokuOrderPage[] => {
-  const pages: DokuOrderTocPage[] = [];
-  let currentPageEntries: DokuTocRootEntry[] = [];
+  const tocPages: DokuOrderTocPage[] = [];
+  let currentTocPageEntries: DokuTocRootEntry[] = [];
 
-  const addPage = () => {
-    pages.push({
+  const addTocPage = () => {
+    tocPages.push({
       type: 'toc',
-      entries: currentPageEntries
+      entries: currentTocPageEntries
     });
 
-    for (const page of pages) {
+    for (const page of tocPages) {
       page.entries = page.entries.map(increasePageIndex);
     }
 
-    currentPageEntries = [];
+    currentTocPageEntries = [];
   };
 
   for (const object of order.objects) {
     const absoluteObjectStartingPageIndex =
-      config.tocStartingPageIndex + pages.length + object.startingPageIndex;
+      config.tocStartingPageIndex + tocPages.length + object.startingPageIndex;
 
     let name: string;
     switch (object.type.type) {
@@ -237,7 +235,7 @@ export const prependTableOfContents = (
       }
     }
 
-    currentPageEntries.push({
+    currentTocPageEntries.push({
       name,
       pageIndex: absoluteObjectStartingPageIndex,
       children: object.headings.map((heading) => ({
@@ -249,7 +247,7 @@ export const prependTableOfContents = (
     // TODO: add logic, to handle page overflow
   }
 
-  addPage();
+  addTocPage();
 
-  return [...pages, ...order.pages];
+  return [...tocPages, ...order.pages];
 };
