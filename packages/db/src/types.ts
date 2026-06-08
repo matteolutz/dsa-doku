@@ -56,6 +56,10 @@ export const DocumentMetaSchema = z.discriminatedUnion('type', [
 export type DocumentMeta = z.infer<typeof DocumentMetaSchema>;
 
 export const AcademyMetaSchema = z.object({
+  doku: z.object({
+    coverPageDetailedLocation: z.string()
+  }),
+
   akaJournalApiEndpoint: z.string().optional()
 });
 export type AcademyMeta = z.infer<typeof AcademyMetaSchema>;

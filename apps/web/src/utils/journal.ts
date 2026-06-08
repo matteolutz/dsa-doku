@@ -120,12 +120,14 @@ export const paginateJournalBlocks = async (
       }
       case 'audio': {
         const audio = blockElement.querySelector('audio');
-        if (audio) {
-          blockMeta.media = {
-            type: 'audio',
-            src: audio.getAttribute('src') ?? ''
-          };
-        }
+        if (!audio) break;
+
+        blockMeta.media = {
+          type: 'audio',
+          src: audio.getAttribute('src') ?? '',
+          caption: blockElement.querySelector('.journal-wp-element-caption')
+            ?.textContent
+        };
         // we need to take into account, that the audio player will be rendered by react
         // and has a fixed height
         blockElement.style.height = `${JOURNAL_AUDIO_PLAYER_CQW_HEIGHT}cqw`;
@@ -133,12 +135,14 @@ export const paginateJournalBlocks = async (
       }
       case 'video': {
         const video = blockElement.querySelector('video');
-        if (video) {
-          blockMeta.media = {
-            type: 'video',
-            src: video.getAttribute('src') ?? ''
-          };
-        }
+        if (!video) break;
+
+        blockMeta.media = {
+          type: 'video',
+          src: video.getAttribute('src') ?? '',
+          caption: blockElement.querySelector('.journal-wp-element-caption')
+            ?.textContent
+        };
         break;
       }
       default:

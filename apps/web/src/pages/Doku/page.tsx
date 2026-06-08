@@ -13,8 +13,8 @@ import 'react-pdf/dist/Page/AnnotationLayer.css';
 import { Spinner } from '@/components/ui/spinner';
 
 import dsaLogo from '@/assets/logos/dsa.png';
-import { formatAcademyDateRange } from '@/utils/academy';
-import type { WpBlock } from '@repo/db/types';
+import { formatAcademyDateRange, formatAcademyName } from '@/utils/academy';
+import type { AcademyMeta, WpBlock } from '@repo/db/types';
 import { JournalAudioPlayer } from './wp/audio';
 
 export type DokuPageContext = {
@@ -99,13 +99,7 @@ const DokuWpMedia: FC<{
 }> = ({ media }) => {
   switch (media.type) {
     case 'audio':
-      return (
-        <JournalAudioPlayer
-          title="Test Audio"
-          author="Matteo Lutz"
-          src={media.src}
-        />
-      );
+      return <JournalAudioPlayer caption={media.caption} src={media.src} />;
     default:
       return null;
   }
@@ -127,6 +121,7 @@ const DokuWpPage: FC<{
         ) : (
           <div
             key={index}
+            // don't worry, it's sanitized
             dangerouslySetInnerHTML={{ __html: block.outerHTML }}
           />
         )
@@ -189,14 +184,15 @@ const DokuPageCover: FC<{ academyId: number; onLoad?: () => void }> = ({
   }, [onLoad, academyQuery.data]);
 
   if (!academyQuery.data) return null;
+  const academyMeta = academyQuery.data.meta as AcademyMeta;
 
   return (
     <div
-      className="relative flex w-full flex-col bg-white px-[10cqw] py-[12cqw]"
+      className="relative flex w-full flex-col items-center bg-white px-[10cqw] py-[12cqw]"
       style={{ aspectRatio: '1 / 1.414' }}
     >
       {/* Header logo */}
-      <div className="mb-[10cqw] h-[10cqw]">
+      <div className="mb-[10cqw] w-full h-[10cqw]">
         <img className="h-full" src={dsaLogo} />
       </div>
 
@@ -208,17 +204,13 @@ const DokuPageCover: FC<{ academyId: number; onLoad?: () => void }> = ({
       {/* Subtitle */}
       <div className="mt-[14cqw] text-center font-sans text-[3cqw] font-bold text-[#0B1220]">
         <p>Dokumentation</p>
-        <p>
-          Akademie {academyQuery.data.location} {academyQuery.data.year}-
-          {academyQuery.data.yearIdx}
-        </p>
+        <p>Akademie {formatAcademyName(academyQuery.data)}</p>
       </div>
 
       {/* Date / Location */}
-      <div className="mt-[14cqw] text-center text-[2cqw] leading-relaxed text-[#0B1220] font-serif">
+      <div className="mt-[14cqw] text-center max-w-[40cqw] text-[2cqw] leading-relaxed text-[#0B1220] font-serif">
         <p>{formatAcademyDateRange(academyQuery.data)}</p>
-        <p>in der Jugendbildungsstätte</p>
-        <p>Marstall Clemenswerth</p>
+        <p>{academyMeta.doku.coverPageDetailedLocation}</p>
       </div>
 
       {/* Footer */}

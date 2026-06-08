@@ -175,7 +175,8 @@ export const WpBlockSchema = z.object({
   media: z
     .object({
       type: z.enum(['audio', 'video']),
-      src: z.string()
+      src: z.string(),
+      caption: z.string().optional()
     })
     .optional()
 });

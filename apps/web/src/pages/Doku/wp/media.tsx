@@ -9,7 +9,7 @@ export const JournalPrintMediaLink: FC<JournalPrintMediaProps> = ({
   media
 }) => {
   return (
-    <div className="journal-wp-sans text-[1.5cqw] hidden print:flex items-center justify-between px-[1cqw] py-[0.5cqw]">
+    <div className="journal-wp-sans text-[1.5cqw] hidden print:flex items-center justify-between py-[0.5cqw]">
       <div>
         <a className="underline text-blue-400" href={media.src} target="_blank">
           Hier

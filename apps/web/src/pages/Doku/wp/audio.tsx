@@ -1,12 +1,17 @@
-import { Pause, Play, Volume, VolumeX } from '@hugeicons/core-free-icons';
+import {
+  Music,
+  Pause,
+  Play,
+  Volume,
+  VolumeX
+} from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { useEffect, useRef, useState, type FC } from 'react';
 import { JournalPrintMediaLink } from './media';
 
 type JournalAudioPlayerProps = {
   src: string;
-  title?: string;
-  author?: string;
+  caption?: string;
 };
 
 export const JOURNAL_AUDIO_PLAYER_CQW_HEIGHT = 9;
@@ -18,8 +23,7 @@ export const JOURNAL_AUDIO_PLAYER_CQW_HEIGHT = 9;
  */
 export const JournalAudioPlayer: FC<JournalAudioPlayerProps> = ({
   src,
-  title,
-  author
+  caption
 }) => {
   const ref = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
@@ -73,10 +77,10 @@ export const JournalAudioPlayer: FC<JournalAudioPlayerProps> = ({
       style={{
         height: `${JOURNAL_AUDIO_PLAYER_CQW_HEIGHT}cqw`
       }}
-      className="journal-wp-block-audio border border-border rounded-md bg-card px-[2cqw] py-[1cqw] flex flex-col gap-[2cqw] w-full"
+      className="journal-wp-block-audio border border-border rounded-md bg-card px-[2cqw] py-[1cqw] flex flex-col gap-[2cqw] w-full overflow-hidden"
     >
       <audio ref={ref} src={src} muted={muted} preload="metadata" />
-      <div className="flex items-center gap-[2.5cqw]">
+      <div className="flex items-center h-full gap-[2.5cqw]">
         <button
           type="button"
           onClick={toggle}
@@ -85,22 +89,21 @@ export const JournalAudioPlayer: FC<JournalAudioPlayerProps> = ({
         >
           <HugeiconsIcon
             icon={playing ? Pause : Play}
-            className="size-[2cqw]"
-            fill="currentColor"
+            className="size-[2cqw] print:hidden"
+          />
+
+          <HugeiconsIcon
+            icon={Music}
+            className="hidden print:block size-[2cqw]"
           />
         </button>
 
         <div className="grid print:grid-rows-2 grid-rows-3 grid-cols-1 justify-center gap-[0.5cqw] h-full flex-1">
           <div className="flex gap-[2cqw] items-end print:items-center leading-0">
-            {title && (
-              <span className="font-semibold print:text-[3cqw] tracking-tight">
-                {title}
-              </span>
-            )}
-            {author && (
-              <span className="text-[1.5cqw] tracking-tight text-muted-foreground">
-                {author}
-              </span>
+            {caption && (
+              <p className="text-[1.5cqw] leading-normal overflow-hidden whitespace-nowrap text-ellipsis tracking-tight">
+                {caption}
+              </p>
             )}
           </div>
           <JournalPrintMediaLink media={{ type: 'audio', src }} />
