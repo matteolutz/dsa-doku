@@ -4,6 +4,10 @@
     font-family: 'Times New Roman', Times, serif;
     text-wrap: pretty;
 
+    display: flex;
+    flex-direction: column;
+    gap: 1cqw;
+
     /*
     .journal-wp-block-paragraph { }
     */

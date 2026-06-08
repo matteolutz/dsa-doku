@@ -120,7 +120,7 @@ const DokuWpPage: FC<{
   }, [wpBlocks, onLoad]);
 
   return (
-    <div className="size-full flex flex-col gap-[1cqw] px-[10cqw] py-[10cqw] overflow-hidden journal-wp-page">
+    <div className="size-full px-[10cqw] py-[10cqw] overflow-hidden journal-wp-page">
       {wpBlocks.map((block, index) =>
         block.media ? (
           <DokuWpMedia media={block.media} />

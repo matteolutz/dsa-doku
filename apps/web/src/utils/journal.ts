@@ -72,22 +72,78 @@ export const paginateJournalBlocks = async (
     pixelScaling: number;
   }
 ) => {
-  const parent = document.createElement('div');
-  parent.style.containerType = 'inline-size';
-  parent.style.width = '210mm';
-  parent.style.visibility = 'hidden';
-  parent.style.position = 'absolute';
-  document.body.appendChild(parent);
+  const container = document.createElement('div');
+  container.style.containerType = 'inline-size';
+  container.style.width = '210mm';
+  container.style.visibility = 'hidden';
+  container.style.position = 'absolute';
+  document.body.appendChild(container);
 
-  const pageHeightLimit = 230;
+  const page = document.createElement('div');
+  page.className = 'journal-wp-page';
+  page.style.width = '100%';
+  container.appendChild(page);
+
+  const pageHeightLimit = 240;
 
   let currentPage = [];
   const pages = [];
 
-  const getParentHeightInMm = () => {
-    const boundingRect = parent.getBoundingClientRect();
+  const getContainerHeightInMm = () => {
+    const boundingRect = container.getBoundingClientRect();
     // we now that the width is 210mm
     return (boundingRect.height / boundingRect.width) * 210;
+  };
+
+  /**
+   * certain block types need special handling.
+   * first of all, media content needs to be awaited
+   */
+  const prepareNewBlock = async (
+    blockMeta: WpBlock,
+    blockElement: HTMLElement
+  ) => {
+    switch (blockMeta.type) {
+      case 'image': {
+        const img = blockElement.querySelector('img');
+        if (img) {
+          await new Promise((resolve) => (img.onload = resolve));
+        }
+        break;
+      }
+      case 'details': {
+        // we need to make sure to render the details content openend to take its
+        // height into account
+        const details = blockElement as HTMLDetailsElement;
+        details.open = true;
+        break;
+      }
+      case 'audio': {
+        const audio = blockElement.querySelector('audio');
+        if (audio) {
+          blockMeta.media = {
+            type: 'audio',
+            src: audio.getAttribute('src') ?? ''
+          };
+        }
+        // we need to take into account, that the audio player will be rendered by react
+        // and has a fixed height
+        blockElement.style.height = `${JOURNAL_AUDIO_PLAYER_CQW_HEIGHT}cqw`;
+        break;
+      }
+      case 'video': {
+        const video = blockElement.querySelector('video');
+        if (video) {
+          blockMeta.media = {
+            type: 'video',
+            src: video.getAttribute('src') ?? ''
+          };
+        }
+        break;
+      }
+      default:
+        break;
+    }
   };
 
   for (const block of blocks) {
@@ -97,8 +153,8 @@ export const paginateJournalBlocks = async (
       continue;
     }
 
-    parent.innerHTML += block.outerHTML;
-    const newBlock = parent.children[parent.children.length - 1] as HTMLElement;
+    page.innerHTML += block.outerHTML;
+    const newBlock = page.children[page.children.length - 1] as HTMLElement;
 
     // fix pixel sizes to use cqw units
     const styledElements = [newBlock, ...newBlock.querySelectorAll('[style]')];
@@ -115,53 +171,17 @@ export const paginateJournalBlocks = async (
       styledElement.setAttribute('style', converted);
     }
 
-    // certain block types need special handling.
-    // first of all, media content needs to be awaited
-    switch (block.type) {
-      case 'image': {
-        const img = newBlock.querySelector('img');
-        if (img) {
-          await new Promise((resolve) => (img.onload = resolve));
-        }
-        break;
-      }
-      case 'details': {
-        // we need to make sure to render the details content openend to take its
-        // height into account
-        const details = newBlock as HTMLDetailsElement;
-        details.open = true;
-        break;
-      }
-      case 'audio': {
-        const audio = newBlock.querySelector('audio');
-        if (audio) {
-          block.media = { type: 'audio', src: audio.getAttribute('src') ?? '' };
-        }
-        // we need to take into account, that the audio player will be rendered by react
-        // and has a fixed height
-        newBlock.style.height = `${JOURNAL_AUDIO_PLAYER_CQW_HEIGHT}cqw`;
-        break;
-      }
-      case 'video': {
-        const video = newBlock.querySelector('video');
-        if (video) {
-          block.media = { type: 'video', src: video.getAttribute('src') ?? '' };
-        }
-        break;
-      }
-      default:
-        break;
-    }
+    await prepareNewBlock(block, newBlock);
 
     // with this new block we overflowed
-    if (getParentHeightInMm() > pageHeightLimit) {
+    if (getContainerHeightInMm() > pageHeightLimit) {
       if (currentPage.length === 0) {
         throw new Error('a single block exceeds the page height limit');
       }
 
       pages.push(currentPage);
       currentPage = [];
-      parent.innerHTML = '';
+      page.innerHTML = '';
     }
 
     block.outerHTML = newBlock.outerHTML;
@@ -170,7 +190,7 @@ export const paginateJournalBlocks = async (
 
   pages.push(currentPage);
 
-  document.body.removeChild(parent);
+  document.body.removeChild(container);
 
   return pages;
 };
