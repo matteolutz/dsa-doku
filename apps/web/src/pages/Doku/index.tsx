@@ -22,7 +22,6 @@ const DokuPage = () => {
     trpc.academy.getWithCourses.queryOptions({ academyId })
   );
 
-  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
   const [containerRef, setContainerRef] = useState<HTMLDivElement | null>(null);
@@ -35,6 +34,7 @@ const DokuPage = () => {
   const numPages = allDocsQuery.data?.length ?? 0;
   const numSheets = Math.floor(numPages / 2) + 1;
 
+  const [searchParams, setSearchParams] = useSearchParams();
   const currentSheet = Number(searchParams.get('p') ?? '0');
   const setCurrentSheet = (p: number) => {
     searchParams.set('p', p.toString());
@@ -70,12 +70,6 @@ const DokuPage = () => {
       ? allDocsQuery.data[page]
       : { type: 'blank' };
 
-  /*
-  const isFullscreen =
-    document.fullscreenElement !== null &&
-    document.fullscreenElement === containerRef;
-    */
-
   return (
     <div className="size-full flex flex-col p-4 gap-4">
       <div className="flex w-full justify-end items-center gap-2">
@@ -94,7 +88,7 @@ const DokuPage = () => {
 
       <div
         ref={setContainerRef}
-        className="group rounded-3xl border border-border bg-muted/40 p-3 shadow-soft sm:p-6"
+        className="group rounded-3xl border border-border bg-muted fullscreen:bg-[#323232] p-3 shadow-soft sm:p-6"
       >
         <div className="group-fullscreen:h-full group-fullscreen:flex grid grid-cols-2 w-full gap-3 justify-center">
           {currentPage > 0 && (
@@ -117,7 +111,7 @@ const DokuPage = () => {
 
       <div className="w-full flex justify-between items-center gap-2 p-2">
         <Button disabled={currentSheet === 0} onClick={prevSheet}>
-          <HugeiconsIcon icon={ChevronLeft} /> Previous
+          <HugeiconsIcon icon={ChevronLeft} /> Vorige Seite
         </Button>
         <div className="flex items-center gap-1.5">
           {Array.from({ length: numSheets }).map((_, i) => (
@@ -130,7 +124,7 @@ const DokuPage = () => {
           ))}
         </div>
         <Button disabled={currentSheet === numSheets - 1} onClick={nextSheet}>
-          <HugeiconsIcon icon={ChevronRight} /> Next
+          <HugeiconsIcon icon={ChevronRight} /> Nächste Seite
         </Button>
       </div>
     </div>
