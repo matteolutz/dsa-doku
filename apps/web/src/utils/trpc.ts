@@ -31,6 +31,8 @@ const DEFAULT_LOGGED_IN_STATE: LoggedInState = {
 export type AuthState =
   | {
       state: 'logged-out';
+
+      preservedData?: LoggedInState;
     }
   | {
       state: 'logged-in';
@@ -82,16 +84,30 @@ export function createAuthClient({ url }: { url: string }) {
     const state = useAuthStore.getState().state;
     if (state.state === 'logged-out') return false;
 
+    const loggedInState = { ...state.data };
+
     const refreshToken = state.refreshToken;
     useAuthStore.setState({
       state: { state: 'refreshing', refreshToken, data: state.data }
     });
 
-    const { accessToken } = await trpcClient.auth.refresh.mutate();
+    try {
+      const { accessToken } = await trpcClient.auth.refresh.mutate();
 
-    useAuthStore.setState({
-      state: { state: 'logged-in', accessToken, refreshToken, data: state.data }
-    });
+      useAuthStore.setState({
+        state: {
+          state: 'logged-in',
+          accessToken,
+          refreshToken,
+          data: state.data
+        }
+      });
+    } catch (err) {
+      useAuthStore.setState({
+        state: { state: 'logged-out', preservedData: loggedInState }
+      });
+      throw err;
+    }
 
     return true;
   };
@@ -206,15 +222,30 @@ export function createAuthClient({ url }: { url: string }) {
           }
         },
 
-        login: (tokens) =>
+        login: (tokens) => {
+          const currentAuthState = get().state;
+          const preservedData =
+            currentAuthState.state === 'logged-out'
+              ? currentAuthState.preservedData
+              : undefined;
+
           set({
             state: {
               state: 'logged-in',
               ...tokens,
-              data: DEFAULT_LOGGED_IN_STATE
+              data: preservedData ?? DEFAULT_LOGGED_IN_STATE
             }
-          }),
-        logout: () => set({ state: { state: 'logged-out' } }),
+          });
+        },
+        logout: () => {
+          const currentAuthState = get().state;
+          const preservedData =
+            currentAuthState.state === 'logged-in'
+              ? currentAuthState.data
+              : undefined;
+
+          set({ state: { state: 'logged-out', preservedData } });
+        },
 
         setLoggedInState: (state: SetStateAction<LoggedInState>) => {
           const current = get();
