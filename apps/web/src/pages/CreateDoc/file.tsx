@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { Check, Upload } from '@hugeicons/core-free-icons';
+import { Check, File as FileIcon, Upload } from '@hugeicons/core-free-icons';
 import { cn } from '@/lib/utils';
 
 const RENUMBERING_SUPPORT = ['.docx'];
@@ -67,7 +67,6 @@ export const DocCreateFileForm: FC<DocFileCreationProps> = ({
     setNewDocId(null);
   }, [docType, fileConfig, createForm]);
 
-  // eslint-disable-next-line react-hooks/incompatible-library
   const uploadedFileList = createForm.watch('file');
   const uploadedFile =
     uploadedFileList?.length > 0 ? uploadedFileList[0] : null;
@@ -82,6 +81,13 @@ export const DocCreateFileForm: FC<DocFileCreationProps> = ({
 
     setTitle(uploadedFile.name);
   }, [uploadedFile]);
+
+  const setUploadedFile = (file: File) => {
+    const dt = new DataTransfer();
+    dt.items.add(file);
+
+    createForm.setValue('file', dt.files);
+  };
 
   const navigate = useNavigate();
 
@@ -116,6 +122,24 @@ export const DocCreateFileForm: FC<DocFileCreationProps> = ({
     navigate('/sections');
   };
 
+  const [isFileDragging, setFileDragging] = useState<boolean>(false);
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setFileDragging(false);
+
+    if (e.dataTransfer.files.length !== 1) return;
+
+    const file = e.dataTransfer.files.item(0)!;
+
+    const ext = file.name.split('.').pop();
+    if (!ext) return;
+
+    // check if the file extension matches the accepted type
+    if (`.${ext}` !== fileConfig.accept) return;
+
+    setUploadedFile(file);
+  };
+
   return (
     <form onSubmit={createForm.handleSubmit(onSubmit)} className="grid gap-6">
       <div className="grid gap-2">
@@ -123,10 +147,25 @@ export const DocCreateFileForm: FC<DocFileCreationProps> = ({
           <label className="mb-2 block text-sm font-medium">Datei</label>
           <label
             htmlFor="file"
-            className="group flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border bg-background/60 px-4 py-8 text-center transition hover:border-primary/40 hover:bg-primary-soft/40"
+            className={cn(
+              'group flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border bg-background/60 px-4 py-8 text-center transition hover:border-primary/40 hover:bg-primary-soft/40',
+              isFileDragging && 'border-primary/40 bg-primary-soft/40'
+            )}
+            onDrop={handleDrop}
+            onDragEnter={(e) => {
+              e.preventDefault();
+              setFileDragging(true);
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+            }}
+            onDragEnd={() => setFileDragging(false)}
           >
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary-soft text-primary">
-              <HugeiconsIcon icon={Upload} className="h-5 w-5" />
+              <HugeiconsIcon
+                icon={uploadedFile ? FileIcon : Upload}
+                className="h-5 w-5"
+              />
             </div>
             {uploadedFile ? (
               <>
