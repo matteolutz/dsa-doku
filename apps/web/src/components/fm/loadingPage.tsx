@@ -3,9 +3,10 @@ import { Spinner } from '../ui/spinner';
 
 const LoadingPage = () => {
   const [uselessFact, setUselessFact] = useState<string | null>(null);
+  const [longerThanExpected, setLongerThanExpected] = useState(false);
 
   useEffect(() => {
-    const timeout = setTimeout(async () => {
+    const factTimeout = setTimeout(async () => {
       // TODO: i18n
       const language = 'de';
 
@@ -18,12 +19,28 @@ const LoadingPage = () => {
       setUselessFact(fact);
     }, 1000);
 
-    return () => clearTimeout(timeout);
+    const longerThanExpectedTimeout = setTimeout(
+      () => setLongerThanExpected(true),
+      5000
+    );
+
+    return () => {
+      clearTimeout(factTimeout);
+      clearTimeout(longerThanExpectedTimeout);
+    };
   }, []);
 
   return (
     <div className="size-full flex flex-col justify-center items-center gap-6">
-      <Spinner />
+      <div className="flex flex-col items-center gap-1">
+        <Spinner />
+        {longerThanExpected && (
+          <p className="text-sm text-muted-foreground">
+            Hmmm, das braucht länger als erwartet...
+          </p>
+        )}
+      </div>
+
       {uselessFact && (
         <div className="max-w-100 flex flex-col gap-0.5 items-center text-center">
           <p className="text-sm font-medium text-muted-foreground">
