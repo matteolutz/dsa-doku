@@ -7,10 +7,10 @@ const LoadingPage = () => {
   useEffect(() => {
     const timeout = setTimeout(async () => {
       // TODO: i18n
-      const language = 'en';
+      const language = 'de';
 
       const fact = await fetch(
-        `https://uselessfacts.jsph.pl/api/v2/facts/random?langauge=${language}`
+        `https://uselessfacts.jsph.pl/api/v2/facts/random?language=${language}`
       )
         .then((res) => res.json())
         .then(({ text }) => text);
@@ -25,9 +25,11 @@ const LoadingPage = () => {
     <div className="size-full flex flex-col justify-center items-center gap-6">
       <Spinner />
       {uselessFact && (
-        <div className="max-w-100 flex flex-col items-center text-center">
-          <p className="text-sm font-medium">Did you know that...</p>
-          <p>{uselessFact}</p>
+        <div className="max-w-100 flex flex-col gap-0.5 items-center text-center">
+          <p className="text-sm font-medium text-muted-foreground">
+            Wusstest Du schon?
+          </p>
+          <p className="text-sm">{uselessFact}</p>
         </div>
       )}
     </div>
