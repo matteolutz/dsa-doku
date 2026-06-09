@@ -13,7 +13,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { queryClient, trpc, useAuthStore } from '@/utils/trpc';
 import { useMutation } from '@tanstack/react-query';
 import { useForm, type SubmitHandler } from 'react-hook-form';
-import { Link } from 'react-router';
+import { Link, useNavigate, useSearchParams } from 'react-router';
 
 type FormInputs = {
   email: string;
@@ -23,14 +23,26 @@ type FormInputs = {
 const LoginPage = () => {
   const loginMutation = useMutation(trpc.auth.login.mutationOptions());
 
+  const [searchParams] = useSearchParams();
+  const redirect = searchParams.get('r');
+
+  const navigate = useNavigate();
+
   const loginForm = useForm<FormInputs>();
 
   const authState = useAuthStore();
 
   const onSubmit: SubmitHandler<FormInputs> = (data) => {
-    loginMutation.mutateAsync(data).then((tokens) => {
+    loginMutation.mutateAsync(data).then(async (tokens) => {
       authState.login(tokens);
-      queryClient.invalidateQueries({ queryKey: trpc.user.me.queryKey() }); // make sure we refetch the user
+      await queryClient.invalidateQueries({
+        queryKey: trpc.user.me.queryKey()
+      }); // make sure we refetch the user
+
+      if (redirect !== null) {
+        console.log('[LOGIN] redirecting to', redirect);
+        navigate(redirect);
+      }
     });
   };
 

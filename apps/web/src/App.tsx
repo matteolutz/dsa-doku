@@ -1,6 +1,6 @@
 import { useAuthStore, useLoggedInState } from './utils/trpc';
 
-import { Navigate, Route, Routes } from 'react-router';
+import { Navigate, Route, Routes, useLocation } from 'react-router';
 import HomePage from './pages/Home';
 import ProfilePage from './pages/Profile';
 import LoginPage from './pages/Auth/login';
@@ -21,13 +21,20 @@ const AuthRoute: FC<{ navigateTo?: string; element: React.ReactNode }> = ({
   element
 }) => {
   const user = useUserFetchingState();
+  const location = useLocation();
 
   if (user?.state == 'loading') {
     return <LoadingPage />;
   }
 
   if (!user || user.state !== 'loaded') {
-    return <Navigate to={navigateTo ?? '/profile/login'} />;
+    console.log(
+      '[AUTH_ROUTE] not authenticated, redirecting to login with pathname',
+      location.pathname
+    );
+    return (
+      <Navigate to={navigateTo ?? `/profile/login?r=${location.pathname}`} />
+    );
   }
 
   return element;
