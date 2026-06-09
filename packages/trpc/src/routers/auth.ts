@@ -76,7 +76,7 @@ export const authRouter = router({
         });
       }
 
-      return generateUserTokenPair(user);
+      return { ...generateUserTokenPair(user), userId: user.id };
     }),
   login: procedure
     .input(
@@ -110,7 +110,7 @@ export const authRouter = router({
         }).toTRPCError();
       }
 
-      return generateUserTokenPair(user);
+      return { ...generateUserTokenPair(user), userId: user.id };
     }),
   refresh: procedure.mutation(async ({ input, ctx }) => {
     const user = requireUser(ctx, 'refresh');

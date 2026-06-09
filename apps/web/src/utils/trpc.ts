@@ -21,10 +21,12 @@ export type RouterInput = inferRouterInputs<AppRouter>;
 export type RouterOutput = inferRouterOutputs<AppRouter>;
 
 export type LoggedInState = {
+  userId: number;
+
   selectedAcademy: number | null;
 };
 
-const DEFAULT_LOGGED_IN_STATE: LoggedInState = {
+const DEFAULT_LOGGED_IN_STATE: Omit<LoggedInState, 'userId'> = {
   selectedAcademy: null
 };
 
@@ -66,7 +68,11 @@ export type AuthContextState = {
     refreshing?: (refreshToken: string) => T;
   }) => T | null;
 
-  login: (tokens: { accessToken: string; refreshToken: string }) => void;
+  login: (tokensAndId: {
+    accessToken: string;
+    refreshToken: string;
+    userId: number;
+  }) => void;
   logout: () => void;
 
   setLoggedInState: (state: SetStateAction<LoggedInState>) => void;
@@ -222,18 +228,26 @@ export function createAuthClient({ url }: { url: string }) {
           }
         },
 
-        login: (tokens) => {
+        login: ({ userId, ...tokens }) => {
           const currentAuthState = get().state;
+
+          // try to get preserved state from "logged-out" state
           const preservedData =
             currentAuthState.state === 'logged-out'
               ? currentAuthState.preservedData
               : undefined;
 
+          // only if the preserved data matches the userId, use it; otherwise, use the default state
+          const data =
+            preservedData?.userId === userId
+              ? preservedData
+              : { ...DEFAULT_LOGGED_IN_STATE, userId };
+
           set({
             state: {
               state: 'logged-in',
               ...tokens,
-              data: preservedData ?? DEFAULT_LOGGED_IN_STATE
+              data
             }
           });
         },

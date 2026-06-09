@@ -33,8 +33,9 @@ const LoginPage = () => {
   const authState = useAuthStore();
 
   const onSubmit: SubmitHandler<FormInputs> = (data) => {
-    loginMutation.mutateAsync(data).then(async (tokens) => {
-      authState.login(tokens);
+    loginMutation.mutateAsync(data).then(async (tokensAndId) => {
+      authState.login(tokensAndId);
+
       await queryClient.invalidateQueries({
         queryKey: trpc.user.me.queryKey()
       }); // make sure we refetch the user
@@ -65,7 +66,7 @@ const LoginPage = () => {
               <Input
                 id="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder="max.mustermann@beispiel.de"
                 required
                 autoComplete="email"
                 {...loginForm.register('email')}

@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Link } from 'react-router';
+import { Link, useNavigate, useSearchParams } from 'react-router';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { queryClient, trpc, useAuthStore } from '@/utils/trpc';
 import { useMutation } from '@tanstack/react-query';
@@ -27,14 +27,27 @@ type FormInputs = {
 const RegisterPage = () => {
   const registerMutation = useMutation(trpc.auth.register.mutationOptions());
 
+  const [searchParams] = useSearchParams();
+  const redirect = searchParams.get('r');
+
+  const navigate = useNavigate();
+
   const registerForm = useForm<FormInputs>();
 
   const authState = useAuthStore();
 
   const onSubmit: SubmitHandler<FormInputs> = (data) => {
-    registerMutation.mutateAsync(data).then((tokens) => {
-      authState.login(tokens);
-      queryClient.invalidateQueries({ queryKey: trpc.user.me.queryKey() }); // make sure we refetch the user
+    registerMutation.mutateAsync(data).then(async (tokensAndId) => {
+      authState.login(tokensAndId);
+
+      await queryClient.invalidateQueries({
+        queryKey: trpc.user.me.queryKey()
+      }); // make sure we refetch the user
+
+      if (redirect !== null) {
+        console.log('[REGISTER] redirecting to', redirect);
+        navigate(redirect);
+      }
     });
   };
 
@@ -68,7 +81,7 @@ const RegisterPage = () => {
               <Input
                 id="firstName"
                 type="text"
-                placeholder="Hartmut"
+                placeholder="Max"
                 required
                 autoComplete="name"
                 {...registerForm.register('firstName')}
@@ -79,7 +92,7 @@ const RegisterPage = () => {
               <Input
                 id="lastName"
                 type="text"
-                placeholder="Rosa"
+                placeholder="Mustermann"
                 required
                 autoComplete="name"
                 {...registerForm.register('lastName')}
@@ -90,7 +103,7 @@ const RegisterPage = () => {
               <Input
                 id="email"
                 type="email"
-                placeholder="du@beispiel.de"
+                placeholder="max.mustermann@beispiel.de"
                 required
                 autoComplete="email"
                 {...registerForm.register('email')}
