@@ -76,7 +76,7 @@ const DokuPageRenderer: FC<DokuPageProps> = ({
 
   return (
     <div
-      className="aspect-210/297 w-full bg-white print:border-0 border border-border overflow-hidden rounded-xl relative @container"
+      className="aspect-210/297 group-fullscreen:h-full group-fullscreen:w-auto w-full bg-white print:border-0 border border-border overflow-hidden rounded-xl relative @container"
       style={{
         gridColumn: side === 'left' ? 1 : 2
       }}

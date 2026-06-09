@@ -14,6 +14,7 @@ import {
 import { HugeiconsIcon } from '@hugeicons/react';
 import { useAcademyDocsQuery } from './query';
 import { useEffect, useEffectEvent, useState } from 'react';
+import { useKey } from 'react-use';
 
 const DokuPage = () => {
   const academyId = useSelectedAcademy();
@@ -26,13 +27,25 @@ const DokuPage = () => {
 
   const [containerRef, setContainerRef] = useState<HTMLDivElement | null>(null);
 
+  const allDocsQuery = useAcademyDocsQuery(
+    academyId,
+    academyQuery.data ?? null
+  );
+
+  const numPages = allDocsQuery.data?.length ?? 0;
+  const numSheets = Math.floor(numPages / 2) + 1;
+
   const currentSheet = Number(searchParams.get('p') ?? '0');
   const setCurrentSheet = (p: number) => {
     searchParams.set('p', p.toString());
     setSearchParams(searchParams);
   };
-  const nextSheet = () => setCurrentSheet(currentSheet + 1);
-  const prevSheet = () => setCurrentSheet(currentSheet - 1);
+  const nextSheet = () =>
+    setCurrentSheet(Math.min(currentSheet + 1, numSheets - 1));
+  const prevSheet = () => setCurrentSheet(Math.max(0, currentSheet - 1));
+
+  useKey('ArrowRight', () => nextSheet(), {}, [nextSheet]);
+  useKey('ArrowLeft', () => prevSheet(), {}, [prevSheet]);
 
   const goToPage = (page: number) =>
     setCurrentSheet(Math.floor((page - 1) / 2) + 1);
@@ -41,14 +54,6 @@ const DokuPage = () => {
   useEffect(() => resetCurrentSheet(), [academyId]);
 
   const currentPage = (currentSheet - 1) * 2 + 1;
-
-  const allDocsQuery = useAcademyDocsQuery(
-    academyId,
-    academyQuery.data ?? null
-  );
-
-  const numPages = allDocsQuery.data?.length ?? 0;
-  const numSheets = Math.floor(numPages / 2) + 1;
 
   const toggleFullscreen = () => {
     if (document.fullscreenElement) {
@@ -89,9 +94,9 @@ const DokuPage = () => {
 
       <div
         ref={setContainerRef}
-        className="[&:fullscreen>*]:h-full [&:fullscreen>*]:flex rounded-3xl border border-border bg-muted/40 p-3 shadow-soft sm:p-6"
+        className="group rounded-3xl border border-border bg-muted/40 p-3 shadow-soft sm:p-6"
       >
-        <div className="grid grid-cols-2 w-full gap-3 justify-center">
+        <div className="group-fullscreen:h-full group-fullscreen:flex grid grid-cols-2 w-full gap-3 justify-center">
           {currentPage > 0 && (
             <DokuPageRenderer
               context={{ goToPage }}

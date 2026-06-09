@@ -4,6 +4,7 @@
 @import '@fontsource-variable/figtree';
 
 @custom-variant dark (&: is(.dark *));
+@custom-variant fullscreen (&:fullscreen);
 
 @theme inline {
   --font-heading: var(--font-sans);
