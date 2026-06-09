@@ -14,8 +14,6 @@ const AcademySelector = () => {
 
   const academiesQuery = useQuery(trpc.academy.getSelectable.queryOptions());
 
-  console.log(loggedInState.selectedAcademy?.toString());
-
   return (
     <Select
       onValueChange={(value) =>
