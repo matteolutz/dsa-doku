@@ -1,5 +1,5 @@
 import z from 'zod';
-import { FileSystemService, procedure, router } from '..';
+import { env, FileSystemService, procedure, router } from '..';
 import { ConversionFnProgress, convertToPdfPages } from '@repo/convert';
 import { DocumentTypeZod } from '../models/doc';
 import { requireUser } from '../utils/auth';
@@ -23,7 +23,7 @@ import unzipper from 'unzipper';
 import { searchFileRecursively } from '../utils/fs';
 import { EventEmitter, on } from 'events';
 import { v4 as uuidv4 } from 'uuid';
-import { getJournalPost } from '../utils/journal';
+import { getS3Client } from '../s3';
 
 const docConversionProgressEventEmitter = new EventEmitter();
 

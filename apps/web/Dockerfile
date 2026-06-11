@@ -3,6 +3,9 @@ ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PNPM_HOME/bin:$PATH"
 RUN corepack enable
 
+# make prisma happy
+RUN apt-get update -y && apt-get install -y openssl
+
 FROM base AS builder
 WORKDIR /app
 
@@ -37,6 +40,8 @@ ENV VITE_APP_BACKGROUND_COLOR=#fff
 ENV VITE_APP_THEME_COLOR=#00858c
 
 ENV VITE_APP_THEME_COLOR_FOREGROUND=#fff
+
+ENV VITE_APP_THEME_COLOR_SOFT=#dcf4f4
 
 ARG VITE_API_BASE_URL
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
