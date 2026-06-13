@@ -39,6 +39,7 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --production --fr
 
 # Copy build artifacts from dependencies
 COPY --from=installer /app/packages/db/dist/ ./packages/db/dist/
+COPY --from=installer /app/packages/db/prisma.config.ts ./packages/db/prisma.config.ts
 COPY --from=installer /app/packages/db/prisma ./packages/db/prisma/
 RUN pnpm --filter=@repo/db generate
 
