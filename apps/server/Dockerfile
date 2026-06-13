@@ -30,7 +30,7 @@ FROM base AS runner
 WORKDIR /app
 
 # install deps for convert package
-RUN apt-get update && apt-get install -y libreoffice-common texlive-luatex texlive-latex-recommended texlive-latex-extra
+RUN apt-get update && apt-get install -y qpdf libreoffice-common texlive-luatex texlive-latex-recommended texlive-latex-extra
 
 ENV NODE_ENV=production
 
@@ -51,4 +51,4 @@ COPY --from=installer /app/apps/server/dist/ ./apps/server/dist/
 ENV PORT=3000
 EXPOSE 3000
 
-CMD ["pnpm", "backend:start"]
+CMD ["pnpm", "backend:prod-start"]
