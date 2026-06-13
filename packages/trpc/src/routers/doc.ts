@@ -342,7 +342,7 @@ export const docRouter = router({
 
       // make sure the academy has an aka journal api endpoint configured
       const academyMeta = academy.meta as AcademyMeta;
-      if (typeof academyMeta.akaJournalApiEndpoint === 'undefined')
+      if (typeof academyMeta.akaJournal === 'undefined')
         throw fmError({
           type: 'academy-feature-not-enabled',
           feature: 'aka-journal'

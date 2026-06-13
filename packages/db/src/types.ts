@@ -60,7 +60,17 @@ export const AcademyMetaSchema = z.object({
     coverPageDetailedLocation: z.string()
   }),
 
-  akaJournalApiEndpoint: z.string().optional()
+  akaJournal: z
+    .object({
+      apiEndpoint: z.string(),
+      apiAuthentication: z
+        .object({
+          username: z.string(),
+          applicationPassword: z.string()
+        })
+        .optional()
+    })
+    .optional()
 });
 export type AcademyMeta = z.infer<typeof AcademyMetaSchema>;
 

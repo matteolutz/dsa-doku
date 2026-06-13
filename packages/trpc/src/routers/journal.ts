@@ -34,16 +34,16 @@ export const journalRouter = router({
 
       // check if the academy has the aka journal feature enabled
       const meta = academy.meta as AcademyMeta;
-      if (typeof meta.akaJournalApiEndpoint === 'undefined')
+      if (typeof meta.akaJournal === 'undefined')
         throw fmError({
           type: 'academy-feature-not-enabled',
           feature: 'aka-journal'
         }).toTRPCError();
 
-      const posts = await getJournalPosts(meta.akaJournalApiEndpoint);
+      const posts = await getJournalPosts(meta.akaJournal);
       if (posts.length === 0) return [];
 
-      const users = await getJournalUsers(meta.akaJournalApiEndpoint);
+      const users = await getJournalUsers(meta.akaJournal);
 
       return posts.map((post) => ({
         ...post,
@@ -74,16 +74,13 @@ export const journalRouter = router({
 
       // check if the academy has the aka journal feature enabled
       const meta = academy.meta as AcademyMeta;
-      if (typeof meta.akaJournalApiEndpoint === 'undefined')
+      if (typeof meta.akaJournal === 'undefined')
         throw fmError({
           type: 'academy-feature-not-enabled',
           feature: 'aka-journal'
         }).toTRPCError();
 
-      const post = await getJournalPost(
-        meta.akaJournalApiEndpoint,
-        input.wpPostId
-      );
+      const post = await getJournalPost(meta.akaJournal, input.wpPostId);
       return post;
     })
 });
