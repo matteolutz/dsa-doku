@@ -14,4 +14,4 @@ export const formatAcademyDateRange = (academy: Academy): string =>
   })}`;
 
 export const isAkaJournalEnabled = (academy: Academy): boolean =>
-  typeof (academy.meta as AcademyMeta).akaJournalApiEndpoint !== 'undefined';
+  typeof (academy.meta as AcademyMeta).akaJournal !== 'undefined';
