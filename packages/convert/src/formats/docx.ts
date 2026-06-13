@@ -131,6 +131,10 @@ export const docxConversionFn = async (
     message: `Converting to PDF`
   });
   // convert docx to pdf
+  console.log(
+    `calling 'soffice' with '--headless --convert-to pdf --outdir ${input.options.outDir} ${newDocxPath}`
+  );
+
   await execFileAsync('soffice', [
     '--headless',
     '--convert-to',
