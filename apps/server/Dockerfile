@@ -30,7 +30,7 @@ FROM base AS runner
 WORKDIR /app
 
 # install deps for convert package
-RUN apt-get update && apt-get install -y qpdf libreoffice-writer texlive-luatex texlive-latex-recommended texlive-latex-extra texlive-bibtex-extra biber
+RUN apt-get update && apt-get install --no-install-recommends --no-install-suggests -y qpdf libreoffice-writer texlive-luatex texlive-latex-recommended texlive-latex-extra texlive-bibtex-extra biber texlive-lang-german
 
 ENV NODE_ENV=production
 
