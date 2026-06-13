@@ -40,7 +40,7 @@ RUN apt-get update \
         texlive-bibtex-extra \
         biber \
         texlive-lang-german \
-        collection-fontsrecommended
+        texlive-fonts-recommended
 
 ENV NODE_ENV=production
 
