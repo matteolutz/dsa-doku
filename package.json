@@ -3,6 +3,7 @@
   "scripts": {
     "backend:build": "turbo --filter=@repo/server build",
     "backend:start": "pnpm --filter=@repo/server start",
+    "backend:prod-start": "pnpm --filter=@repo/server prod-start",
     "web:build": "turbo --filter=@repo/web build",
     "web:dev": "pnpm --filter=@repo/web dev",
     "web:preview": "pnpm --filter=@repo/web preview",
