@@ -14,5 +14,5 @@ export const prisma = new PrismaClient({
 export const initDb = () => {
   seedDb()
     .then(() => console.log('[DB] database seeded'))
-    .catch(() => console.warn('[DB] failed to seed database'));
+    .catch((err) => console.warn('[DB] failed to seed database:', err));
 };
