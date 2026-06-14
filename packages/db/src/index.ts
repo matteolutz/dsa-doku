@@ -1,5 +1,6 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from './types.js';
+import { seedDb } from './seed.js';
 
 export const prisma = new PrismaClient({
   adapter: new PrismaPg(process.env.DATABASE_URL!),
@@ -9,3 +10,9 @@ export const prisma = new PrismaClient({
     }
   }
 });
+
+export const initDb = () => {
+  seedDb()
+    .then(() => console.log('[DB] database seeded'))
+    .catch(() => console.warn('[DB] failed to seed database'));
+};
