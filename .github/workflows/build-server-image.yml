@@ -4,6 +4,15 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'apps/server/**'
+      - 'packages/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'apps/server/**'
+      - 'packages/**'
 
 permissions:
   packages: write
