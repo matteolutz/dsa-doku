@@ -16,7 +16,7 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
-        - VITE_API_BASE_URL='http://api.${DSA_DOKU_DOMAIN}'
+        - VITE_API_BASE_URL=http://api.${DSA_DOKU_DOMAIN}
       labels:
         - 'traefik.enable=true'
         - 'traefik.http.routers.frontend.rule=Host(`${DSA_DOKU_DOMAIN}`)'
