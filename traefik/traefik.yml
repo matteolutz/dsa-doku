@@ -1,0 +1,19 @@
+providers:
+  docker: {}
+
+entryPoints:
+  web:
+    address: ':80'
+  websecure:
+    address: ':443'
+
+api:
+  insecure: true
+  dashboard: true
+
+# certificatesResolvers:
+#  le:
+#    acme:
+#      email: info@matteolutz.de
+#      storage: acme.json
+#      tlsChallenge: {}

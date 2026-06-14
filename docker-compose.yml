@@ -1,19 +1,60 @@
 services:
-  web:
+  traefik:
+    image: traefik:v3.7
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '8080:8080'
+      - '443:443'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      # - ./traefik/acme.json:/acme.json
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml
+
+  frontend:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
-        - VITE_APP_NAME=${APP_NAME}
-        - VITE_APP_SHORT_NAME=${APP_SHORT_NAME}
-        - VITE_APP_BACKGROUND_COLOR=${APP_BACKGROUND_COLOR}
-        - VITE_APP_THEME_COLOR=${APP_THEME_COLOR}
-        - VITE_API_BASE_URL="http://server:3000"
+        - VITE_API_BASE_URL='http://api.${DSA_DOKU_DOMAIN}'
+      labels:
+        - 'traefik.enable=true'
+        - 'traefik.http.routers.frontend.rule=Host(`${DSA_DOKU_DOMAIN}`)'
+        - 'traefik.http.routers.frontend.entrypoints=web'
+        - 'traefik.http.routers.frontend.service=frontend'
+        - 'traefik.http.services.frontend.loadbalancer.server.port=80'
 
-  server:
-    build:
-      context: .
-      dockerfile: apps/server/Dockerfile
+  backend:
+    image: 'ghcr.io/matteolutz/dsa-doku-server:latest'
     environment:
       - JWT_SECRET=${JWT_SECRET}
-      - DATABASE_URL=${DATABASE_URL}
+      - NONCE_SECRET=${NONCE_SECRET}
+      - FILE_ROOT=/data/dsa-doku
+      - DATABASE_URL=postgres://dsa-doku-user:${PG_PASSWORD}@db/dsa-doku
+    volumes:
+      - server-data:/data/dsa-doku
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.backend.rule=Host(`api.${DSA_DOKU_DOMAIN}`)'
+      - 'traefik.http.routers.backend.entrypoints=web'
+      - 'traefik.http.routers.backend.service=backend'
+      - 'traefik.http.services.backend.loadbalancer.server.port=3000'
+
+  db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=dsa-doku-user
+      - POSTGRES_PASSWORD=${PG_PASSWORD}
+      - POSTGRES_DB=dsa-doku
+      - PGDATA=/data/postgres
+    volumes:
+      - db-data:/data/postgres
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $$POSTGRES_USER -d dsa-doku']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  server-data:
+  db-data:
