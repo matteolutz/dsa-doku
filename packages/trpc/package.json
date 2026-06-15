@@ -17,6 +17,7 @@
     "@repo/db": "workspace:*",
     "@trpc/server": "^11.16.0",
     "bcrypt": "^6.0.0",
+    "fetch-cookie": "^3.2.0",
     "jsonwebtoken": "^9.0.3",
     "superjson": "^2.2.6",
     "unzipper": "^0.12.3",

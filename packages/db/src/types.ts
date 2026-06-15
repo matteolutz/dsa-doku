@@ -64,10 +64,19 @@ export const AcademyMetaSchema = z.object({
     .object({
       apiEndpoint: z.string(),
       apiAuthentication: z
-        .object({
-          username: z.string(),
-          applicationPassword: z.string()
-        })
+        .discriminatedUnion('type', [
+          z.object({
+            type: z.literal('applicationPassword'),
+            username: z.string(),
+            applicationPassword: z.string()
+          }),
+          z.object({
+            type: z.literal('cookie'),
+            wpLoginEndpoint: z.string(),
+            username: z.string(),
+            password: z.string()
+          })
+        ])
         .optional()
     })
     .optional()
