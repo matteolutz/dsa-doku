@@ -1,4 +1,4 @@
-import { useState, type FC } from 'react';
+import { useMemo, useState, type FC } from 'react';
 import type { DocCreationMethodCommonProps } from './types';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
@@ -78,15 +78,30 @@ export const DocCreateJournalForm: FC<DocJournalCreationProps> = ({
     navigate('/sections');
   };
 
+  const filtered = useMemo(
+    () =>
+      journalPosts?.filter(
+        (a) =>
+          a.title.rendered.toLowerCase().includes(search.toLowerCase()) ||
+          a.excerpt.rendered.toLocaleLowerCase().includes(search.toLowerCase())
+      ) ?? [],
+    [journalPosts, search]
+  );
+
+  const grouped = useMemo(
+    () =>
+      filtered.reduce<Record<string, typeof filtered>>((acc, post) => {
+        const categoryKey = post.categories[0]?.name ?? 'Unkategorisiert';
+        if (!acc[categoryKey]) acc[categoryKey] = [];
+        acc[categoryKey].push(post);
+        return acc;
+      }, {}),
+    [filtered]
+  );
+
   if (journalPosts === null) return <LoadingPage />;
 
-  console.log('journalPosts', journalPosts);
-
-  const filtered = journalPosts.filter(
-    (a) =>
-      a.title.rendered.toLowerCase().includes(search.toLowerCase()) ||
-      a.excerpt.rendered.toLocaleLowerCase().includes(search.toLowerCase())
-  );
+  console.log('grouped posts', grouped);
 
   return (
     <div className="space-y-5">
@@ -120,85 +135,100 @@ export const DocCreateJournalForm: FC<DocJournalCreationProps> = ({
         </Button>
       </div>
 
-      <ul className="space-y-2">
-        {filtered.map((a) => {
-          const active = selectedPost === a.id;
-          return (
-            <li key={a.id}>
-              <button
-                type="button"
-                onClick={() => setSelectedPost(a.id)}
-                className={`flex w-full items-start gap-3 rounded-2xl border bg-background/60 p-4 text-left transition ${
-                  active
-                    ? 'border-primary/60 ring-2 ring-primary/20'
-                    : 'border-border hover:border-primary/30'
-                }`}
-              >
-                <div
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
-                    active
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-primary-soft text-primary'
-                  }`}
-                >
-                  <HugeiconsIcon icon={Newspaper} className="h-4 w-4" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-semibold">
-                    <SanitizeHtml
-                      dirty={a.title.rendered}
-                      options={htmlSanitationOptions}
-                    />
-                  </div>
-                  <div className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
-                    <SanitizeHtml
-                      dirty={a.excerpt.rendered}
-                      options={htmlSanitationOptions}
-                    />
-                  </div>
-                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-                    {a.authorName && (
-                      <span className="inline-flex items-center gap-1">
-                        <HugeiconsIcon icon={UserIcon} className="h-3 w-3" />{' '}
-                        {a.authorName}
-                      </span>
-                    )}
-                    {a.date && (
-                      <span className="inline-flex items-center gap-1">
-                        <HugeiconsIcon icon={Calendar} className="h-3 w-3" />{' '}
-                        {new Date(a.date).toLocaleDateString('de-DE', {
-                          day: '2-digit',
-                          month: 'long',
-                          year: 'numeric'
-                        })}
-                      </span>
-                    )}
-                    <Button
-                      onClick={(e) => e.stopPropagation()}
-                      asChild
-                      className="m-0 p-0 text-[11px]"
-                      size="sm"
-                      variant="link"
-                    >
-                      <a target="_blank" href={a.link}>
-                        Ansehen
-                      </a>
-                    </Button>
-                  </div>
-                </div>
-                {active && (
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                    <HugeiconsIcon
-                      icon={Check}
-                      className="h-3 w-3"
-                      strokeWidth={3}
-                    />
-                  </span>
-                )}
-              </button>
+      <ul className="space-y-4">
+        {Object.entries(grouped)
+          .sort(([a], [b]) => a.localeCompare(b))
+          .map(([category, posts]) => (
+            <li key={category}>
+              <h3 className="text-sm font-semibold text-muted-foreground">
+                {category}
+              </h3>
+              <ul className="space-y-2">
+                {posts.map((a) => {
+                  const active = selectedPost === a.id;
+                  return (
+                    <li key={a.id}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPost(a.id)}
+                        className={`flex w-full items-start gap-3 rounded-2xl border bg-background/60 p-4 text-left transition ${
+                          active
+                            ? 'border-primary/60 ring-2 ring-primary/20'
+                            : 'border-border hover:border-primary/30'
+                        }`}
+                      >
+                        <div
+                          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+                            active
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-primary-soft text-primary'
+                          }`}
+                        >
+                          <HugeiconsIcon icon={Newspaper} className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-sm font-semibold">
+                            <SanitizeHtml
+                              dirty={a.title.rendered}
+                              options={htmlSanitationOptions}
+                            />
+                          </div>
+                          <div className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
+                            <SanitizeHtml
+                              dirty={a.excerpt.rendered}
+                              options={htmlSanitationOptions}
+                            />
+                          </div>
+                          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+                            <span className="inline-flex items-center gap-1">
+                              <HugeiconsIcon
+                                icon={UserIcon}
+                                className="h-3 w-3"
+                              />{' '}
+                              {a.authors.join(', ')}
+                            </span>
+                            {a.date && (
+                              <span className="inline-flex items-center gap-1">
+                                <HugeiconsIcon
+                                  icon={Calendar}
+                                  className="h-3 w-3"
+                                />{' '}
+                                {new Date(a.date).toLocaleDateString('de-DE', {
+                                  day: '2-digit',
+                                  month: 'long',
+                                  year: 'numeric'
+                                })}
+                              </span>
+                            )}
+                            <Button
+                              onClick={(e) => e.stopPropagation()}
+                              asChild
+                              className="m-0 p-0 text-[11px]"
+                              size="sm"
+                              variant="link"
+                            >
+                              <a target="_blank" href={a.link}>
+                                Ansehen
+                              </a>
+                            </Button>
+                          </div>
+                        </div>
+                        {active && (
+                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                            <HugeiconsIcon
+                              icon={Check}
+                              className="h-3 w-3"
+                              strokeWidth={3}
+                            />
+                          </span>
+                        )}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
             </li>
-          );
-        })}
+          ))}
         {filtered.length === 0 && (
           <li className="rounded-2xl border border-dashed border-border bg-background/40 p-6 text-center text-sm text-muted-foreground">
             Keine Artikel gefunden.

@@ -43,6 +43,7 @@ export const sanitizeJournalBlock = (outerHTML: string) =>
     allowedTags: sanitize.defaults.allowedTags.concat([
       'img',
       'audio',
+      'video',
       'details',
       'summary',
       ...MATH_ML_TAGS

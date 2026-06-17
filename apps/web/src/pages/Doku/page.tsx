@@ -16,6 +16,7 @@ import dsaLogo from '@/assets/logos/dsa.png';
 import { formatAcademyDateRange, formatAcademyName } from '@/utils/academy';
 import type { AcademyMeta, WpBlock } from '@repo/db/types';
 import { JournalAudioPlayer } from './wp/audio';
+import { JournalVideoPlayer } from './wp/video';
 
 export type DokuPageContext = {
   goToPage: (page: number) => void;
@@ -100,6 +101,8 @@ const DokuWpMedia: FC<{
   switch (media.type) {
     case 'audio':
       return <JournalAudioPlayer caption={media.caption} src={media.src} />;
+    case 'video':
+      return <JournalVideoPlayer caption={media.caption} src={media.src} />;
     default:
       return null;
   }

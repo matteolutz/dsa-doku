@@ -70,13 +70,17 @@
     }
 
     /* Media */
-    .journal-wp-block-image img {
+    img {
       height: auto;
       max-width: 100%;
       vertical-align: bottom;
     }
 
     .journal-wp-block-audio {
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .journal-wp-block-video {
       font-family: Arial, Helvetica, sans-serif;
     }
   }

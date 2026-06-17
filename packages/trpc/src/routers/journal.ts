@@ -5,6 +5,7 @@ import { requireUser } from '../utils/auth';
 import { ensureAccessToAcademy } from '../utils/academy';
 import { fmError } from '../error';
 import {
+  getJournalCategories,
   getJournalPost,
   getJournalPosts,
   getJournalUsers
@@ -43,11 +44,15 @@ export const journalRouter = router({
       const posts = await getJournalPosts(meta.akaJournal);
       if (posts.length === 0) return [];
 
-      const users = await getJournalUsers(meta.akaJournal);
+      const categories = await getJournalCategories(meta.akaJournal);
 
       return posts.map((post) => ({
         ...post,
-        authorName: users.find((user) => user.id === post.author)?.name
+        authors: post.authors?.map(({ display_name }) => display_name) ?? [],
+        categories: post.categories.map((categoryId) => ({
+          id: categoryId,
+          name: categories.find((cat) => cat.id === categoryId)?.name
+        }))
       }));
     }),
   getPost: t.procedure
