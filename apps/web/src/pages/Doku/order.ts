@@ -198,6 +198,14 @@ export const prependTableOfContents = (
   const tocPages: DokuOrderTocPage[] = [];
   let currentTocPageEntries: DokuTocRootEntry[] = [];
 
+  const MAX_ENTRIES_PER_PAGE = 25;
+
+  const countCurrentEntries = () =>
+    currentTocPageEntries.reduce(
+      (acc, entry) => acc + 2 + entry.children.length,
+      0
+    );
+
   const addTocPage = () => {
     tocPages.push({
       type: 'toc',
@@ -244,7 +252,10 @@ export const prependTableOfContents = (
       }))
     });
 
-    // TODO: add logic, to handle page overflow
+    // handle overflow
+    if (countCurrentEntries() >= MAX_ENTRIES_PER_PAGE) {
+      addTocPage();
+    }
   }
 
   addTocPage();
