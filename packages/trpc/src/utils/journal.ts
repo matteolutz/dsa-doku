@@ -1,4 +1,4 @@
-import { AcademyMeta, WpPost, WpUser } from '@repo/db/types';
+import { AcademyMeta, WpCategory, WpPost, WpUser } from '@repo/db/types';
 import makeFetchCookie from 'fetch-cookie';
 
 export type JournalConfig = NonNullable<AcademyMeta['akaJournal']>;
@@ -12,6 +12,8 @@ const joinUrl = (base: string, path: string): string =>
   `${base.replace(/\/$/, '')}/${path.replace(/^\//, '')}`;
 
 const journalRequest = async (journalConfig: JournalConfig, route: string) => {
+  console.log('doing wp request', route);
+
   const headers: Record<string, string> = {};
   if (typeof journalConfig.apiAuthentication !== 'undefined') {
     switch (journalConfig.apiAuthentication.type) {
@@ -20,29 +22,41 @@ const journalRequest = async (journalConfig: JournalConfig, route: string) => {
           `Basic ${Buffer.from(`${journalConfig.apiAuthentication.username}:${journalConfig.apiAuthentication.applicationPassword}`).toString('base64')}`;
         break;
       case 'cookie':
-        await fetchCookie(journalConfig.apiAuthentication.wpLoginEndpoint, {
-          method: 'POST',
-          credentials: 'include',
-          body: new URLSearchParams({
-            log: journalConfig.apiAuthentication.username,
-            pwd: journalConfig.apiAuthentication.password
-          })
-        });
+        // don't do any authentication by default. only do the wp-login.php request if the
+        // actual request fails with a 403 code
 
         break;
     }
   }
 
-  return fetchCookie(joinUrl(journalConfig.apiEndpoint, route), {
+  let res = await fetchCookie(joinUrl(journalConfig.apiEndpoint, route), {
     headers,
     credentials: 'include'
-  })
-    .then((res) => res.json())
-    .then((res) => {
-      if (process.env.NODE_ENV !== 'production')
-        console.log('wp api response', res);
-      return res;
+  });
+
+  if (
+    journalConfig.apiAuthentication?.type === 'cookie' &&
+    res.status === 403
+  ) {
+    console.log('retrying wp with authentication');
+    // the actual request failed with a 403 code. retry with authentication
+    await fetchCookie(journalConfig.apiAuthentication.wpLoginEndpoint, {
+      method: 'POST',
+      credentials: 'include',
+      body: new URLSearchParams({
+        log: journalConfig.apiAuthentication.username,
+        pwd: journalConfig.apiAuthentication.password
+      })
     });
+
+    // retry the request
+    res = await fetchCookie(joinUrl(journalConfig.apiEndpoint, route), {
+      headers,
+      credentials: 'include'
+    });
+  }
+
+  return res.json();
 };
 
 export const getJournalPosts = async (
@@ -57,3 +71,7 @@ export const getJournalPost = async (
 export const getJournalUsers = async (
   journalConfig: JournalConfig
 ): Promise<WpUser[]> => journalRequest(journalConfig, 'wp/v2/users');
+
+export const getJournalCategories = async (
+  journalConfig: JournalConfig
+): Promise<WpCategory[]> => journalRequest(journalConfig, 'wp/v2/categories');

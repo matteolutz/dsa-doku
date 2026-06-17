@@ -70,6 +70,7 @@ export interface WpPost {
   /** Relationships */
   author: number;
   featured_media: number;
+  authors?: { user_id: number; display_name: string }[];
 
   /** Discussion */
   comment_status: WpCommentStatus;
@@ -146,6 +147,35 @@ export interface WpUser {
   /** Custom user meta */
   meta: Record<string, unknown>;
 }
+
+export type WpCategory = {
+  /** Unique identifier */
+  id: number;
+
+  /** Number of published posts assigned to this term */
+  count: number;
+
+  /** HTML description */
+  description: string;
+
+  /** Public URL */
+  link: string;
+
+  /** Display name */
+  name: string;
+
+  /** URL-friendly slug */
+  slug: string;
+
+  /** Taxonomy type */
+  taxonomy: 'category';
+
+  /** Parent term ID (0 for top-level terms) */
+  parent: number;
+
+  /** Custom meta fields */
+  meta: Record<string, unknown>;
+};
 
 export const WpBlockSchema = z.object({
   /**
