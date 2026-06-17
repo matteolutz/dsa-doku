@@ -140,6 +140,9 @@ export const DocCreateFileForm: FC<DocFileCreationProps> = ({
     setUploadedFile(file);
   };
 
+  const isCreating =
+    createForm.formState.isSubmitting || currentProgress !== null;
+
   return (
     <form onSubmit={createForm.handleSubmit(onSubmit)} className="grid gap-6">
       <div className="grid gap-2">
@@ -249,16 +252,9 @@ export const DocCreateFileForm: FC<DocFileCreationProps> = ({
           />
         </div>
       )}
-      <Button
-        disabled={createForm.formState.isSubmitting}
-        type="submit"
-        className="w-full"
-        size="lg"
-      >
+      <Button disabled={isCreating} type="submit" className="w-full" size="lg">
         {currentProgress?.message ?? 'Erstellen'}
-        {createForm.formState.isSubmitting && (
-          <Spinner data-icon="inline-start" />
-        )}
+        {isCreating && <Spinner data-icon="inline-start" />}
       </Button>
     </form>
   );
