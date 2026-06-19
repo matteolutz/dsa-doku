@@ -8,13 +8,16 @@ import ConfirmationModalContextProvider from './hooks/modal.tsx';
 
 import './index.css';
 import '@/assets/css/journal.css';
+import { TooltipProvider } from './components/ui/tooltip.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <ConfirmationModalContextProvider>
         <BrowserRouter>
-          <App />
+          <TooltipProvider>
+            <App />
+          </TooltipProvider>
         </BrowserRouter>
       </ConfirmationModalContextProvider>
     </QueryClientProvider>

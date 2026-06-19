@@ -4,19 +4,25 @@ import {
   Item,
   ItemActions,
   ItemContent,
+  ItemDescription,
   ItemMedia,
   ItemTitle
 } from '@/components/ui/item';
 import { Spinner } from '@/components/ui/spinner';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger
+} from '@/components/ui/tooltip';
 import { useConfirmationModalContext } from '@/hooks/modal';
 import { fetchJournalPostBlocks } from '@/utils/journal';
 import { queryClient, trpc } from '@/utils/trpc';
 import {
   Delete,
-  File,
   Plus,
-  Computer,
-  Refresh
+  Refresh,
+  ParagraphIcon,
+  Edit
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import type {
@@ -28,6 +34,19 @@ import type {
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useState, type FC } from 'react';
 import { Link } from 'react-router';
+import { getDocumentTypeIcon, getDocumentTypeLabel } from './util';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { useForm } from 'react-hook-form';
 
 export type AbstractDocumentsProps = {
   documentType: DocumentType;
@@ -116,13 +135,14 @@ const AbstractDocuments: FC<AbstractDocumentsProps> = ({ documentType }) => {
         itemClassName="rounded-lg"
         withDragHandle
       >
-        {documentsQuery.data.map((doc) => (
+        {documentsQuery.data.map((doc, idx) => (
           <Document
             doc={doc}
             deleteDocument={deleteDocument}
             documentType={documentType}
             isFetching={documentsQuery.isFetching}
             key={doc.id}
+            isLastInSection={idx === documentsQuery.data.length - 1}
           />
         ))}
       </ReorderList>
@@ -152,7 +172,8 @@ const Document: FC<{
   deleteDocument: (doc: Document) => void;
   isFetching: boolean;
   documentType: DocumentType;
-}> = ({ doc, deleteDocument, isFetching, documentType }) => {
+  isLastInSection: boolean;
+}> = ({ doc, deleteDocument, isFetching, documentType, isLastInSection }) => {
   const updateWpPostMutation = useMutation(
     trpc.doc.updateJournal.mutationOptions({
       onSuccess: async () => {
@@ -161,6 +182,16 @@ const Document: FC<{
             wpPostId: (docMeta.meta as DocumentWpMeta).wpPostId
           })
         });
+        await queryClient.invalidateQueries({
+          queryKey: trpc.doc.getAllOfType.queryKey({ documentType })
+        });
+      }
+    })
+  );
+
+  const renameDocumentMutation = useMutation(
+    trpc.doc.rename.mutationOptions({
+      onSuccess: async () => {
         await queryClient.invalidateQueries({
           queryKey: trpc.doc.getAllOfType.queryKey({ documentType })
         });
@@ -202,6 +233,14 @@ const Document: FC<{
     )
   );
 
+  const renameDocumentForm = useForm<{ title: string }>();
+  const onRenameDocumentSubmit = async ({ title }: { title: string }) => {
+    await renameDocumentMutation.mutateAsync({
+      docId: doc.id,
+      title
+    });
+  };
+
   const isOutdated =
     docMeta.type === 'wp' &&
     wpPostQuery.data?.modified !==
@@ -210,15 +249,79 @@ const Document: FC<{
   return (
     <Item data-docId={doc.id} variant="outline" size="xs">
       <ItemMedia>
+        {isLastInSection && (
+          <Tooltip>
+            <TooltipTrigger>
+              <div className="flex size-5 items-center justify-center rounded-full border border-primary-soft text-primary">
+                <HugeiconsIcon icon={ParagraphIcon} className="size-3" />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>
+                Der Titel dieses Dokuments wird im Inhaltsverzeichnis angezeigt.
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        )}
         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-soft text-primary">
           <HugeiconsIcon
-            icon={(doc.meta as DocumentMeta).type === 'file' ? File : Computer}
+            icon={getDocumentTypeIcon((doc.meta as DocumentMeta).type)}
             className="h-4 w-4"
           />
         </div>
       </ItemMedia>
       <ItemContent>
-        <ItemTitle>{doc.title}</ItemTitle>
+        <ItemTitle>
+          <span>{doc.title}</span>
+          {(doc.meta as DocumentMeta).type === 'file' && (
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button size="icon-xs" variant="ghost">
+                  <HugeiconsIcon icon={Edit} />
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle className="pr-2">
+                    Dokument umbenennen
+                  </DialogTitle>
+                  <DialogDescription className="flex flex-col">
+                    <span>Hier kannst du den Titel des Dokuments ändern.</span>
+                    {isLastInSection && (
+                      <span className="text-destructive text-xs">
+                        Achtung: Der Titel dieses Dokuments wird aktuell zur
+                        Anzeige im Inhaltsverzeichnis verwendet.
+                      </span>
+                    )}
+                  </DialogDescription>
+                </DialogHeader>
+
+                <form
+                  onSubmit={renameDocumentForm.handleSubmit(
+                    onRenameDocumentSubmit
+                  )}
+                  className="grid gap-4"
+                >
+                  <Input
+                    placeholder="Titel"
+                    defaultValue={doc.title}
+                    required
+                    {...renameDocumentForm.register('title')}
+                  />
+
+                  <DialogFooter className="sm:justify-end">
+                    <DialogClose asChild>
+                      <Button type="submit">Okay</Button>
+                    </DialogClose>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+          )}
+        </ItemTitle>
+        <ItemDescription className="text-xs">
+          {getDocumentTypeLabel((doc.meta as DocumentMeta).type)}
+        </ItemDescription>
       </ItemContent>
       <ItemActions className="mr-10">
         {isFetching && <Spinner />}
