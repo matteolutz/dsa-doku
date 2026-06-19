@@ -7,6 +7,8 @@ export * from '@prisma/client';
 export * from './wpTypes';
 export { WpBlockSchema } from './wpTypes';
 
+export * from './error';
+
 export type SafeUser = Prisma.UserGetPayload<{ omit: { password: true } }>;
 export type AcademyWithCourses = Prisma.AcademyGetPayload<{
   include: { courses: true };

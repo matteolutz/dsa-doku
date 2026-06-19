@@ -1,49 +1,11 @@
-import { DocumentMeta } from '@repo/db/types';
+import { FMErrorType } from '@repo/db/types';
 import { TRPC_ERROR_CODE_KEY, TRPCError } from '@trpc/server';
 
-export type FMErrorType =
-  | {
-      type: 'unauthorized';
-      reason:
-        | 'invalid-auth-header'
-        | 'invalid-jwt'
-        | 'invalid-token-type'
-        | 'invalid-password'
-        | 'jwt-expired'
-        | 'unknown-user'
-        | 'insufficient-permissions'
-        | 'invalid-registration-code';
-    }
-  | {
-      type: 'passwords-dont-match';
-    }
-  | {
-      type: 'resource-not-found';
-      resource: 'course' | 'uploaded-doc' | 'doc' | 'doc-fs' | 'academy';
-      id: string | number;
-    }
-  | {
-      type: 'document-page-out-of-range';
-      page: number;
-      availablePages: number;
-    }
-  | {
-      type: 'document-type-mismatch';
-      expected: DocumentMeta['type'];
-      actual: DocumentMeta['type'];
-    }
-  | {
-      type: 'academy-feature-not-enabled';
-      feature: 'aka-journal';
-    }
-  | {
-      type: 'todo';
-      feature: string;
-    };
-
 export class FMError extends Error {
+  public readonly isFmError = true;
+
   constructor(public readonly type: FMErrorType) {
-    super(`FestivalManagerError - ${JSON.stringify(type)}`);
+    super(`${JSON.stringify(type)}`);
   }
 
   toTRPCError(): TRPCError {
@@ -73,9 +35,9 @@ export class FMError extends Error {
     }
 
     throw new TRPCError({
-      message: 'A FestivalManager Error occured',
+      message: `${this.type.type}`,
       code,
-      cause: this.message
+      cause: this
     });
   }
 }
