@@ -224,6 +224,8 @@ export const prependTableOfContents = (
       config.tocStartingPageIndex + tocPages.length + object.startingPageIndex;
 
     let name: string;
+    let children: DokuTocChildEntry[] = [];
+
     switch (object.type.type) {
       case 'AL_PREFACE':
       case 'KUMU': {
@@ -235,10 +237,18 @@ export const prependTableOfContents = (
         const course = academy.courses.find((c) => c.id === courseId)!;
 
         name = `Kurs ${academy.yearIdx}.${course.courseIdx}\t${course.title.toUpperCase()}`;
+        children = object.headings.map((heading) => ({
+          name: heading.text,
+          pageIndex: absoluteObjectStartingPageIndex + heading.pageOffset
+        }));
         break;
       }
       case 'KUA': {
         name = 'Kursübergreifende Aktivitäten';
+        children = object.headings.map((heading) => ({
+          name: heading.text,
+          pageIndex: absoluteObjectStartingPageIndex + heading.pageOffset
+        }));
         break;
       }
     }
@@ -246,10 +256,7 @@ export const prependTableOfContents = (
     currentTocPageEntries.push({
       name,
       pageIndex: absoluteObjectStartingPageIndex,
-      children: object.headings.map((heading) => ({
-        name: heading.text,
-        pageIndex: absoluteObjectStartingPageIndex + heading.pageOffset
-      }))
+      children
     });
 
     // handle overflow

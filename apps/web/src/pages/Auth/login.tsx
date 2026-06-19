@@ -1,3 +1,4 @@
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -12,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { queryClient, trpc, useAuthStore } from '@/utils/trpc';
 import { useMutation } from '@tanstack/react-query';
+import { useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 
@@ -23,6 +25,8 @@ type FormInputs = {
 const LoginPage = () => {
   const loginMutation = useMutation(trpc.auth.login.mutationOptions());
 
+  const [error, setError] = useState<string | null>(null);
+
   const [searchParams] = useSearchParams();
   const redirect = searchParams.get('r');
 
@@ -33,18 +37,21 @@ const LoginPage = () => {
   const authState = useAuthStore();
 
   const onSubmit: SubmitHandler<FormInputs> = (data) => {
-    loginMutation.mutateAsync(data).then(async (tokensAndId) => {
-      authState.login(tokensAndId);
+    loginMutation
+      .mutateAsync(data)
+      .then(async (tokensAndId) => {
+        authState.login(tokensAndId);
 
-      await queryClient.invalidateQueries({
-        queryKey: trpc.user.me.queryKey()
-      }); // make sure we refetch the user
+        await queryClient.invalidateQueries({
+          queryKey: trpc.user.me.queryKey()
+        }); // make sure we refetch the user
 
-      if (redirect !== null) {
-        console.log('[LOGIN] redirecting to', redirect);
-        navigate(redirect);
-      }
-    });
+        if (redirect !== null) {
+          console.log('[LOGIN] redirecting to', redirect);
+          navigate(redirect);
+        }
+      })
+      .catch((err: Error) => setError(err.message));
   };
 
   return (
@@ -55,6 +62,14 @@ const LoginPage = () => {
           <CardDescription>
             Melde Dich an, um auf die Dokumentation deiner Akademie zuzugreifen
           </CardDescription>
+          {error && (
+            <Alert variant="destructive">
+              <AlertTitle>Login fehlgeschlagen</AlertTitle>
+              <AlertDescription>
+                <span className="text-xs">Grund:</span> {error}
+              </AlertDescription>
+            </Alert>
+          )}
         </CardHeader>
         <CardContent>
           <form

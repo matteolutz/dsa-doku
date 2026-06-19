@@ -231,6 +231,46 @@ export const docRouter = router({
         }
       });
     }),
+  rename: procedure
+    .input(
+      z.object({
+        docId: z.string(),
+        title: z.string()
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const user = requireUser(ctx);
+
+      const document = await ctx.prisma.document.findUnique({
+        where: { id: input.docId }
+      });
+
+      // only allow renaming files. to rename a wp document, use the updateJournal mutation
+      if (!document || (document.meta as DocumentMeta).type !== 'file')
+        throw fmError({
+          type: 'resource-not-found',
+          resource: 'doc',
+          id: input.docId
+        }).toTRPCError();
+
+      // make sure we have accces
+      switch (document.category) {
+        case 'COURSE': {
+          await ensureAccessToCourse(user, document.courseId!, 'write');
+          break;
+        }
+        default:
+          await ensureAccessToAcademy(user, document.academyId, 'write');
+          break;
+      }
+
+      const updatedDocument = await ctx.prisma.document.update({
+        where: { id: input.docId },
+        data: { title: input.title }
+      });
+
+      return updatedDocument;
+    }),
   updateJournal: procedure
     .input(
       z.object({

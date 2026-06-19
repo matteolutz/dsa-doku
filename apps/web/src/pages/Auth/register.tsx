@@ -1,3 +1,4 @@
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -14,6 +15,7 @@ import { useForm, type SubmitHandler } from 'react-hook-form';
 import { queryClient, trpc, useAuthStore } from '@/utils/trpc';
 import { useMutation } from '@tanstack/react-query';
 import { Spinner } from '@/components/ui/spinner';
+import { useState } from 'react';
 
 type FormInputs = {
   registrationCode: string;
@@ -27,6 +29,8 @@ type FormInputs = {
 const RegisterPage = () => {
   const registerMutation = useMutation(trpc.auth.register.mutationOptions());
 
+  const [error, setError] = useState<string | null>(null);
+
   const [searchParams] = useSearchParams();
   const redirect = searchParams.get('r');
 
@@ -37,18 +41,22 @@ const RegisterPage = () => {
   const authState = useAuthStore();
 
   const onSubmit: SubmitHandler<FormInputs> = (data) => {
-    registerMutation.mutateAsync(data).then(async (tokensAndId) => {
-      authState.login(tokensAndId);
+    registerMutation
+      .mutateAsync(data)
+      .then(async (tokensAndId) => {
+        authState.login(tokensAndId);
 
-      await queryClient.invalidateQueries({
-        queryKey: trpc.user.me.queryKey()
-      }); // make sure we refetch the user
+        await queryClient.invalidateQueries({
+          queryKey: trpc.user.me.queryKey()
+        }); // make sure we refetch the user
 
-      if (redirect !== null) {
-        console.log('[REGISTER] redirecting to', redirect);
-        navigate(redirect);
-      }
-    });
+        if (redirect !== null) {
+          console.log('[REGISTER] redirecting to', redirect);
+          navigate(redirect);
+        }
+      })
+
+      .catch((err: Error) => setError(err.message));
   };
 
   return (
@@ -59,6 +67,14 @@ const RegisterPage = () => {
           <CardDescription>
             Erstelle einen neuen Account mit einem Registrierungscode
           </CardDescription>
+          {error && (
+            <Alert variant="destructive">
+              <AlertTitle>Login fehlgeschlagen</AlertTitle>
+              <AlertDescription>
+                <span className="text-xs">Grund:</span> {error}
+              </AlertDescription>
+            </Alert>
+          )}
         </CardHeader>
         <CardContent>
           <form
