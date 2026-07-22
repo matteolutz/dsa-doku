@@ -1,4 +1,4 @@
-import { useEffect, useState, type FC } from 'react';
+import { memo, useEffect, useState, type FC } from 'react';
 import type { DokuOrderPage, DokuTocRootEntry } from './order';
 import { useQuery } from '@tanstack/react-query';
 import { trpc } from '@/utils/trpc';
@@ -17,6 +17,7 @@ import { formatAcademyDateRange, formatAcademyName } from '@/utils/academy';
 import type { AcademyMeta, WpBlock } from '@repo/db/types';
 import { JournalAudioPlayer } from './wp/audio';
 import { JournalVideoPlayer } from './wp/video';
+import { cn } from '@/lib/utils';
 
 export type DokuPageContext = {
   goToPage: (page: number) => void;
@@ -28,70 +29,71 @@ export type DokuPageProps = {
   side: 'left' | 'right';
   context: DokuPageContext;
 
+  className?: string;
+
   onLoad?: () => void;
 };
 
-const DokuPageRenderer: FC<DokuPageProps> = ({
-  page,
-  absolutePageIndex,
-  side,
-  context,
-  onLoad
-}) => {
-  const [containerRef, { width: containerWidth }] =
-    useMeasure<HTMLDivElement>();
+const DokuPageRenderer: FC<DokuPageProps> = memo(
+  ({ page, absolutePageIndex, side, context, onLoad, className }) => {
+    const [containerRef, { width: containerWidth }] =
+      useMeasure<HTMLDivElement>();
 
-  useEffect(() => {
-    if (page.type === 'blank') onLoad?.();
-  }, [onLoad, page.type]);
+    useEffect(() => {
+      if (page.type === 'blank') onLoad?.();
+    }, [onLoad, page.type]);
 
-  const renderPage = () => {
-    switch (page.type) {
-      case 'file-page':
-        return (
-          <DokuPageFile
-            containerWidth={containerWidth}
-            docId={page.docId}
-            pageIndex={page.pageIndex}
-            onLoad={onLoad}
-          />
-        );
-      case 'wp-page':
-        return <DokuWpPage wpBlocks={page.wpBlocks} onLoad={onLoad} />;
-      case 'blank':
-        return <div></div>;
-      case 'cover':
-        return <DokuPageCover academyId={page.academyId} onLoad={onLoad} />;
-      case 'toc':
-        return (
-          <DokuPageToc
-            context={context}
-            entries={page.entries}
-            onLoad={onLoad}
-          />
-        );
-      default:
-        return null;
-    }
-  };
+    const renderPage = () => {
+      switch (page.type) {
+        case 'file-page':
+          return (
+            <DokuPageFile
+              containerWidth={containerWidth}
+              docId={page.docId}
+              pageIndex={page.pageIndex}
+              onLoad={onLoad}
+            />
+          );
+        case 'wp-page':
+          return <DokuWpPage wpBlocks={page.wpBlocks} onLoad={onLoad} />;
+        case 'blank':
+          return <div></div>;
+        case 'cover':
+          return <DokuPageCover academyId={page.academyId} onLoad={onLoad} />;
+        case 'toc':
+          return (
+            <DokuPageToc
+              context={context}
+              entries={page.entries}
+              onLoad={onLoad}
+            />
+          );
+        default:
+          return null;
+      }
+    };
 
-  return (
-    <div
-      className="aspect-210/297 group-fullscreen:h-full group-fullscreen:w-auto w-full bg-white print:border-0 border border-border overflow-hidden rounded-xl relative @container"
-      style={{
-        gridColumn: side === 'left' ? 1 : 2
-      }}
-      ref={containerRef}
-    >
-      {renderPage()}
-      {typeof absolutePageIndex !== 'undefined' && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[2cqw]">
-          {absolutePageIndex + 1}
-        </div>
-      )}
-    </div>
-  );
-};
+    return (
+      <div
+        className={cn(
+          'aspect-210/297 group-fullscreen:h-full group-fullscreen:w-auto w-full bg-white print:border-0 border border-border overflow-hidden rounded-xl relative @container',
+          className
+        )}
+        style={{
+          gridColumn: side === 'left' ? 1 : 2
+        }}
+        ref={containerRef}
+      >
+        {renderPage()}
+        {typeof absolutePageIndex !== 'undefined' && (
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[2cqw]">
+            {absolutePageIndex + 1}
+          </div>
+        )}
+      </div>
+    );
+  }
+);
 
 export default DokuPageRenderer;
 
