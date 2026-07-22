@@ -15,6 +15,8 @@ import { HugeiconsIcon } from '@hugeicons/react';
 import { useAcademyDocsQuery } from './query';
 import { useEffect, useEffectEvent, useState } from 'react';
 import { useKey } from 'react-use';
+import { useDokuDoubleBuffer } from './hooks';
+import { cn } from '@/lib/utils';
 
 const DokuPage = () => {
   const academyId = useSelectedAcademy();
@@ -53,7 +55,7 @@ const DokuPage = () => {
   const resetCurrentSheet = useEffectEvent(() => setCurrentSheet(0));
   useEffect(() => resetCurrentSheet(), [academyId]);
 
-  const currentPage = (currentSheet - 1) * 2 + 1;
+  const doubleBuffer = useDokuDoubleBuffer({ currentSheet });
 
   const toggleFullscreen = () => {
     if (document.fullscreenElement) {
@@ -91,21 +93,67 @@ const DokuPage = () => {
         className="group rounded-3xl border border-border bg-muted fullscreen:bg-[#323232] p-3 shadow-soft sm:p-6"
       >
         <div className="group-fullscreen:h-full group-fullscreen:flex grid grid-cols-2 w-full gap-3 justify-center">
-          {currentPage > 0 && (
-            <DokuPageRenderer
-              context={{ goToPage }}
-              side="left"
-              page={getPage(currentPage)}
-              absolutePageIndex={currentPage}
-            />
-          )}
+          <div
+            data-side="left"
+            className="relative aspect-210/297 group-fullscreen:h-full group-fullscreen:w-auto w-full"
+          >
+            {doubleBuffer.a.left.state !== 'not-rendered' && (
+              <DokuPageRenderer
+                context={{ goToPage }}
+                side="left"
+                page={getPage(doubleBuffer.a.left.page)}
+                absolutePageIndex={doubleBuffer.a.left.page}
+                className={cn(
+                  'absolute',
+                  doubleBuffer.a.left.state === 'hidden' && 'invisible'
+                )}
+              />
+            )}
 
-          <DokuPageRenderer
-            context={{ goToPage }}
-            side="right"
-            page={getPage(currentPage + 1)}
-            absolutePageIndex={currentPage + 1}
-          />
+            {doubleBuffer.b.left.state !== 'not-rendered' && (
+              <DokuPageRenderer
+                context={{ goToPage }}
+                side="left"
+                page={getPage(doubleBuffer.b.left.page)}
+                absolutePageIndex={doubleBuffer.b.left.page}
+                className={cn(
+                  'absolute',
+                  doubleBuffer.b.left.state === 'hidden' && 'invisible'
+                )}
+              />
+            )}
+          </div>
+
+          <div
+            data-side="right"
+            className="relative aspect-210/297 group-fullscreen:h-full group-fullscreen:w-auto w-full"
+          >
+            {doubleBuffer.a.right.state !== 'not-rendered' && (
+              <DokuPageRenderer
+                context={{ goToPage }}
+                side="right"
+                page={getPage(doubleBuffer.a.right.page)}
+                absolutePageIndex={doubleBuffer.a.right.page}
+                className={cn(
+                  'absolute',
+                  doubleBuffer.a.right.state === 'hidden' && 'invisible'
+                )}
+              />
+            )}
+
+            {doubleBuffer.b.right.state !== 'not-rendered' && (
+              <DokuPageRenderer
+                context={{ goToPage }}
+                side="right"
+                page={getPage(doubleBuffer.b.right.page)}
+                absolutePageIndex={doubleBuffer.b.right.page}
+                className={cn(
+                  'absolute',
+                  doubleBuffer.b.right.state === 'hidden' && 'invisible'
+                )}
+              />
+            )}
+          </div>
         </div>
       </div>
 
