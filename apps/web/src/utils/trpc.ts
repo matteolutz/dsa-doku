@@ -271,7 +271,7 @@ export function createAuthClient({ url }: { url: string }) {
           set({ state: { ...current.state, data: newData } });
         }
       }),
-      { name: 'auth-storage', storage: createJSONStorage(() => sessionStorage) }
+      { name: 'auth-storage', storage: createJSONStorage(() => localStorage) }
     )
   );
 
