@@ -3,7 +3,6 @@ import 'dotenv/config';
 import express from 'express';
 
 import { trpcExpress } from '@repo/trpc';
-import { pwaRouter } from './router/pwa';
 
 import cors from 'cors';
 import { fsRouter } from './router/fs';
@@ -20,7 +19,6 @@ app.use('/health', (_, res) => {
   return res.json({ status: 'OK' });
 });
 
-app.use('/pwa', pwaRouter);
 app.use('/trpc', trpcExpress);
 app.use('/fs', fsRouter);
 

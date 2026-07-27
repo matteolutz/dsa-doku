@@ -54,12 +54,12 @@ export default defineConfig(({ mode }) => {
       theme_color: requiredEnv(env, 'VITE_APP_THEME_COLOR'),
       icons: [
         {
-          src: `${requiredEnv(env, 'VITE_API_BASE_URL')}/pwa/icon-192x192.png`,
+          src: `./src/assets/icon-192.png`,
           sizes: '192x192',
           type: 'image/png'
         },
         {
-          src: `${requiredEnv(env, 'VITE_API_BASE_URL')}/pwa/icon-512x512.png`,
+          src: `./src/assets/icon-512.png`,
           sizes: '512x512',
           type: 'image/png'
         }
