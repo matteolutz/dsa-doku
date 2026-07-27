@@ -86,6 +86,6 @@ export const journalRouter = router({
         }).toTRPCError();
 
       const post = await getJournalPost(meta.akaJournal, input.wpPostId);
-      return post;
+      return { post, wpBaseUrl: meta.akaJournal.baseEndpoint };
     })
 });

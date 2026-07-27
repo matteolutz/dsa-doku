@@ -203,12 +203,14 @@ export const paginateJournalBlocks = async (
 export const fetchJournalPostBlocks = async (
   postId: number,
   academyId: number,
-  options?: { insertDocumentTitle?: boolean }
+  options?: { insertDocumentTitle?: boolean; insertAuthors?: boolean }
 ) => {
-  const post = await trpcClient.journal.getPost.query({
+  const { post, wpBaseUrl } = await trpcClient.journal.getPost.query({
     wpPostId: postId,
     academyId
   });
+
+  console.log('post', post);
 
   const parser = new DOMParser();
   const postDoc = parser.parseFromString(post.content.rendered, 'text/html');
@@ -253,7 +255,26 @@ export const fetchJournalPostBlocks = async (
     })
     .filter((block) => block !== null);
 
-  console.log('postBlocks', postBlocks);
+  if (options?.insertAuthors && Array.isArray(post.authors)) {
+    const authorsDiv = document.createElement('div');
+    authorsDiv.className = 'journal-wp-custom-block-authors';
+
+    for (const author of post.authors) {
+      const authorTag = document.createElement('a');
+      authorTag.href = `${wpBaseUrl}/author/${author.slug}`;
+      authorTag.target = '_blank';
+      authorTag.rel = 'author';
+      authorTag.title = author.display_name;
+      authorTag.textContent = author.display_name;
+      authorsDiv.appendChild(authorTag);
+    }
+
+    postBlocks.unshift({
+      type: 'custom',
+      outerHTML: authorsDiv.outerHTML,
+      heading: undefined
+    });
+  }
 
   if (options?.insertDocumentTitle) {
     const title = post.title.rendered;
@@ -264,6 +285,8 @@ export const fetchJournalPostBlocks = async (
     };
     postBlocks.unshift(titleBlock);
   }
+
+  console.log('postBlocks', postBlocks);
 
   const pages = await paginateJournalBlocks(postBlocks, {
     pixelScaling: 0.2

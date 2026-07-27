@@ -31,6 +31,51 @@
       padding-inline-start: 5cqw;
     }
 
+    .journal-wp-block-pullquote {
+      blockquote {
+        p {
+          &::before {
+            content: '„';
+            display: inline-block;
+            margin-right: 1cqw;
+            color: #888888;
+          }
+
+          &::after {
+            content: '“';
+            display: inline-block;
+            margin-left: 1cqw;
+            color: #888888;
+          }
+
+          font-size: 3cqw;
+        }
+      }
+
+      text-align: center;
+      padding: 4cqw;
+
+      background-color: #e2e8f0;
+      border-radius: 1cqw;
+    }
+
+    .journal-wp-custom-block-authors {
+      margin-top: -1cqw;
+      display: flex;
+      gap: 0.5cqw;
+
+      a {
+        text-decoration: underline;
+        color: #00858c;
+
+        &:not(:last-child)::after {
+          content: ', ';
+          text-decoration: none;
+          color: black;
+        }
+      }
+    }
+
     /* Layouts */
     .journal-wp-block-columns {
       width: 100%;

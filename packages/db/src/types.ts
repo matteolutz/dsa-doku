@@ -64,6 +64,7 @@ export const AcademyMetaSchema = z.object({
 
   akaJournal: z
     .object({
+      baseEndpoint: z.string(),
       apiEndpoint: z.string(),
       apiAuthentication: z
         .discriminatedUnion('type', [

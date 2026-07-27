@@ -70,7 +70,7 @@ export interface WpPost {
   /** Relationships */
   author: number;
   featured_media: number;
-  authors?: { user_id: number; display_name: string }[];
+  authors?: { user_id: number; display_name: string; slug: string }[];
 
   /** Discussion */
   comment_status: WpCommentStatus;

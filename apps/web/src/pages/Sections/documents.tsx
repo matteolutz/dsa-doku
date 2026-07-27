@@ -206,7 +206,7 @@ const Document: FC<{
     const { post, pages } = await fetchJournalPostBlocks(
       (docMeta.meta as DocumentWpMeta).wpPostId ?? 0,
       doc.academyId,
-      { insertDocumentTitle: true }
+      { insertDocumentTitle: true, insertAuthors: true }
     );
 
     await updateWpPostMutation.mutateAsync({
@@ -244,7 +244,7 @@ const Document: FC<{
 
   const isOutdated =
     docMeta.type === 'wp' &&
-    wpPostQuery.data?.modified !==
+    wpPostQuery.data?.post.modified !==
       (docMeta.meta as DocumentWpMeta).wpPostLastModified;
 
   return (

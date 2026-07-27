@@ -62,7 +62,7 @@ export const DocCreateJournalForm: FC<DocJournalCreationProps> = ({
     const { post, pages } = await fetchJournalPostBlocks(
       selectedPost,
       academyId,
-      { insertDocumentTitle: true }
+      { insertDocumentTitle: true, insertAuthors: true }
     );
 
     await createJournalDocMutation.mutateAsync({
