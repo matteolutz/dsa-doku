@@ -1,0 +1,72 @@
+services:
+  frontend:
+    image: 'ghcr.io/matteolutz/dsa-doku-web:latest'
+    environment:
+      - VITE_API_BASE_URL=${API_HOST}:3000
+    ports:
+      - '80:80'
+    deploy:
+      placement:
+        constraints:
+          - node.labels.role == dsa-doku-web
+
+  backend:
+    image: 'ghcr.io/matteolutz/dsa-doku-server:latest'
+    ports:
+      - '3000:3000'
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - JWT_SECRET=${JWT_SECRET}
+      - NONCE_SECRET=${NONCE_SECRET}
+      - FILE_ROOT=/data/dsa-doku
+      - DATABASE_URL=postgres://dsa-doku-user:${PG_PASSWORD}@db/dsa-doku
+      - ADMIN_REGISTRATION_CODE=${ADMIN_REGISTRATION_CODE}
+    volumes:
+      - server-data:/data/dsa-doku
+    deploy:
+      placement:
+        constraints:
+          - node.labels.role == dsa-doku-backend
+
+  db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=dsa-doku-user
+      - POSTGRES_PASSWORD=${PG_PASSWORD}
+      - POSTGRES_DB=dsa-doku
+      - PGDATA=/data/postgres
+    volumes:
+      - db-data:/data/postgres
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $$POSTGRES_USER -d dsa-doku']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    deploy:
+      placement:
+        constraints:
+          - node.labels.role == dsa-doku-db
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    ports:
+      - '8081:80'
+    depends_on:
+      db:
+        condition: service_started
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=info@matteolutz.de
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
+    deploy:
+      placement:
+        constraints:
+          - node.labels.role == dsa-doku-db
+
+volumes:
+  server-data:
+  db-data:
+  pgadmin-data:
