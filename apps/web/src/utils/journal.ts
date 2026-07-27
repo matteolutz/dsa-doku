@@ -202,7 +202,8 @@ export const paginateJournalBlocks = async (
 
 export const fetchJournalPostBlocks = async (
   postId: number,
-  academyId: number
+  academyId: number,
+  options?: { insertDocumentTitle?: boolean }
 ) => {
   const post = await trpcClient.journal.getPost.query({
     wpPostId: postId,
@@ -253,6 +254,16 @@ export const fetchJournalPostBlocks = async (
     .filter((block) => block !== null);
 
   console.log('postBlocks', postBlocks);
+
+  if (options?.insertDocumentTitle) {
+    const title = post.title.rendered;
+    const titleBlock = {
+      type: 'heading',
+      outerHTML: `<h1 class="journal-wp-block-heading">${title}</h1>`,
+      heading: { text: title, level: 1 }
+    };
+    postBlocks.unshift(titleBlock);
+  }
 
   const pages = await paginateJournalBlocks(postBlocks, {
     pixelScaling: 0.2

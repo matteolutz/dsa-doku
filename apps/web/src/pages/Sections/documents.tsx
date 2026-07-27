@@ -205,7 +205,8 @@ const Document: FC<{
 
     const { post, pages } = await fetchJournalPostBlocks(
       (docMeta.meta as DocumentWpMeta).wpPostId ?? 0,
-      doc.academyId
+      doc.academyId,
+      { insertDocumentTitle: true }
     );
 
     await updateWpPostMutation.mutateAsync({
