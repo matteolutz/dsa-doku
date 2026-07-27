@@ -31,21 +31,6 @@ ENV GENERATE_SOURCEMAP=false
 
 ENV NODE_ENV=production
 
-ENV VITE_APP_NAME="DSA Doku"
-
-ENV VITE_APP_SHORT_NAME="DSA Doku"
-
-ENV VITE_APP_BACKGROUND_COLOR=#fff
-
-ENV VITE_APP_THEME_COLOR=#00858c
-
-ENV VITE_APP_THEME_COLOR_FOREGROUND=#fff
-
-ENV VITE_APP_THEME_COLOR_SOFT=#dcf4f4
-
-ARG VITE_API_BASE_URL
-ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
-
 RUN pnpm turbo run build
 
 FROM nginx
@@ -53,3 +38,9 @@ WORKDIR /app
 
 COPY ./apps/web/nginx/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=installer /app/apps/web/dist /usr/share/nginx/html
+
+# Preserve env-templated index.html
+COPY --from=installer /app/apps/web/dist/index.html /usr/share/nginx/html/index.template.html
+
+# Substitute placeholders and start nginx
+CMD ["sh", "-c", "envsubst < /usr/share/nginx/html/index.template.html > /usr/share/nginx/html/index.html && nginx -g 'daemon off;'"]

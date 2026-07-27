@@ -214,6 +214,9 @@ importers:
       vite-plugin-pwa:
         specifier: ^1.2.0
         version: 1.2.0(vite@8.0.3(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(@types/node@24.12.0)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.49.0)(tsx@4.21.0))(workbox-build@7.4.0)(workbox-window@7.4.0)
+      vite-plugin-runtime-env:
+        specifier: ^1.0.0
+        version: 1.0.0(vite@8.0.3(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(@types/node@24.12.0)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.49.0)(tsx@4.21.0))
 
   packages/convert:
     dependencies:
@@ -5664,6 +5667,11 @@ packages:
     peerDependenciesMeta:
       '@vite-pwa/assets-generator':
         optional: true
+
+  vite-plugin-runtime-env@1.0.0:
+    resolution: {integrity: sha512-0fV4NGeIubM632bQLQ4WijAyfFrrWw2zbar8b/HUGj6hNmKXQ6HUdWAcBPGILInOIgY3qm5hSOhWDJEvhFF64g==}
+    peerDependencies:
+      vite: '*'
 
   vite@8.0.3:
     resolution: {integrity: sha512-B9ifbFudT1TFhfltfaIPgjo9Z3mDynBTJSUYxTjOQruf/zHH+ezCQKcoqO+h7a9Pw9Nm/OtlXAiGT1axBgwqrQ==}
@@ -11734,6 +11742,11 @@ snapshots:
       workbox-window: 7.4.0
     transitivePeerDependencies:
       - supports-color
+
+  vite-plugin-runtime-env@1.0.0(vite@8.0.3(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(@types/node@24.12.0)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.49.0)(tsx@4.21.0)):
+    dependencies:
+      magic-string: 0.30.21
+      vite: 8.0.3(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(@types/node@24.12.0)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.49.0)(tsx@4.21.0)
 
   vite@8.0.3(@emnapi/core@1.9.1)(@emnapi/runtime@1.9.1)(@types/node@24.12.0)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.49.0)(tsx@4.21.0):
     dependencies:
