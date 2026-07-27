@@ -19,8 +19,8 @@ app.use('/health', (_, res) => {
   return res.json({ status: 'OK' });
 });
 
-app.use('/trpc', trpcExpress);
 app.use('/fs', fsRouter);
+app.use('/trpc', trpcExpress);
 
 const port = process.env.PORT || 3000;
 
