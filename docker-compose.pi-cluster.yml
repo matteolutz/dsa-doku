@@ -14,9 +14,6 @@ services:
     image: 'ghcr.io/matteolutz/dsa-doku-server:latest'
     ports:
       - '3000:3000'
-    depends_on:
-      db:
-        condition: service_healthy
     environment:
       - JWT_SECRET=${JWT_SECRET}
       - NONCE_SECRET=${NONCE_SECRET}
@@ -53,9 +50,6 @@ services:
     image: dpage/pgadmin4:latest
     ports:
       - '8081:80'
-    depends_on:
-      db:
-        condition: service_started
     volumes:
       - pgadmin-data:/var/lib/pgadmin
     environment:
