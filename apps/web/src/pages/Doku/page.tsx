@@ -82,6 +82,7 @@ const DokuPageRenderer: FC<DokuPageProps> = memo(
         style={{
           gridColumn: side === 'left' ? 1 : 2
         }}
+        id={`doku-page-${absolutePageIndex}`}
         ref={containerRef}
       >
         {renderPage()}
@@ -237,7 +238,8 @@ const DokuPageToc: FC<{
     <div className="flex flex-col gap-[5cqw] px-[10cqw] py-[12cqw]">
       {entries.map((entry) => (
         <div className="flex flex-col gap-[0.2cqw]">
-          <div
+          <a
+            href={`#doku-page-${entry.pageIndex}`}
             onClick={() => context.goToPage(entry.pageIndex)}
             className="cursor-pointer flex items-end gap-[1cqw]"
           >
@@ -251,9 +253,10 @@ const DokuPageToc: FC<{
             <span className="whitespace-nowrap text-[2cqw]">
               S.&nbsp;{entry.pageIndex + 1}
             </span>
-          </div>
+          </a>
           {entry.children.map((childEntry) => (
-            <div
+            <a
+              href={`#doku-page-${entry.pageIndex}`}
               onClick={() => context.goToPage(childEntry.pageIndex)}
               className="cursor-pointer flex items-end gap-[1cqw]"
             >
@@ -267,7 +270,7 @@ const DokuPageToc: FC<{
               <span className="whitespace-nowrap text-[2cqw]">
                 S.&nbsp;{childEntry.pageIndex + 1}
               </span>
-            </div>
+            </a>
           ))}
         </div>
       ))}
