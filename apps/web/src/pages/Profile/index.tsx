@@ -12,6 +12,7 @@ import {
 } from '@/utils/user';
 import { Location, Logout, Mail, Shield } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon, type IconSvgElement } from '@hugeicons/react';
+import { UserPermissionFlags, isPermissionFlagSet } from '@repo/permissions';
 import { useQuery } from '@tanstack/react-query';
 
 const ProfilePage = () => {
@@ -21,6 +22,9 @@ const ProfilePage = () => {
   const selectedAcademy = useNullableSelectedAcademy();
   console.log('selectedAcademy', selectedAcademy);
   const academiesQuery = useQuery(trpc.academy.getSelectable.queryOptions());
+
+  const canCreateNewAcademy = isPermissionFlagSet(user.permissions, UserPermissionFlags.WRITE_ALL_ACADEMIES);
+  console.log("canCreateNewAcademy", canCreateNewAcademy);
 
   return (
     <div className="flex flex-col gap-8 p-8">
