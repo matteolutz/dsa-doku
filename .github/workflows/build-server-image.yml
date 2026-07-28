@@ -65,3 +65,5 @@ jobs:
           tags: |
             ghcr.io/matteolutz/dsa-doku-server:${{ needs.commit-hash.outputs.commit_hash }}
             ghcr.io/matteolutz/dsa-doku-server:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
