@@ -97,6 +97,8 @@ model Course {
   allowReading Boolean @default(false)
 
   documents Document[]
+
+  @@unique([academyId, courseIdx])
 }
 
 model CourseParticipation {
