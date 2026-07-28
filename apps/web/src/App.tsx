@@ -15,6 +15,7 @@ import CreateDocPage from './pages/CreateDoc';
 import ViewPage from './pages/View';
 import DokuPage from './pages/Doku';
 import DokuPrintPage from './pages/Doku/print';
+import { NewAcademyPage } from './pages/Academies/New';
 
 const AuthRoute: FC<{ navigateTo?: string; element: React.ReactNode }> = ({
   navigateTo,
@@ -98,6 +99,10 @@ const App = () => {
             path="create"
             element={<AuthRoute element={<CreateDocPage />} />}
           />
+        </Route>
+
+        <Route path="academies">
+          <Route path="new" element={<AuthRoute element={<NewAcademyPage />} />} />
         </Route>
 
         <Route path="loading" element={<LoadingPage />} />
