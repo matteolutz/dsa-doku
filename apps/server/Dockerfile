@@ -55,6 +55,7 @@ RUN pnpm --filter=@repo/db generate
 
 COPY --from=installer /app/packages/trpc/dist/ ./packages/trpc/dist/
 COPY --from=installer /app/packages/convert/dist/ ./packages/convert/dist/
+COPY --from=installer /app/packages/permissions/dist/ ./packages/permissions/dist/
 
 # Copy build artifacts from server application
 COPY --from=installer /app/apps/server/dist/ ./apps/server/dist/
