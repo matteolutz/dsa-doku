@@ -1,12 +1,11 @@
 import {
   Course,
-  hasPermission,
-  ReadWriteScope,
   SafeUser
 } from '@repo/db/types';
 import { ensureAccessToAcademy } from './academy';
 import { fmError } from '../error';
 import { prisma } from '@repo/db';
+import { hasPermission, ReadWriteScope } from '@repo/permissions';
 
 export const ensureAccessToCourse = async (
   user: SafeUser,

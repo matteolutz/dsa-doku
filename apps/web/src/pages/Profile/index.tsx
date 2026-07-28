@@ -10,9 +10,11 @@ import {
   userRoleToLongString,
   userRoleToString
 } from '@/utils/user';
-import { Location, Logout, Mail, Shield } from '@hugeicons/core-free-icons';
+import { Location, Logout, Mail, Plus, Shield } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon, type IconSvgElement } from '@hugeicons/react';
+import { hasPermission } from '@repo/permissions';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router';
 
 const ProfilePage = () => {
   const authState = useAuthStore();
@@ -21,6 +23,8 @@ const ProfilePage = () => {
   const selectedAcademy = useNullableSelectedAcademy();
   console.log('selectedAcademy', selectedAcademy);
   const academiesQuery = useQuery(trpc.academy.getSelectable.queryOptions());
+
+  const canCreateNewAcademy = hasPermission(user, "WRITE_ALL_ACADEMIES");
 
   return (
     <div className="flex flex-col gap-8 p-8">
@@ -74,6 +78,13 @@ const ProfilePage = () => {
               subtitle={formatAcademyDateRange(academy)}
             />
           ))}
+
+          {canCreateNewAcademy &&
+            <Link to="/academies/new" className='flex items-center gap-3 border-b border-border px-4 py-3.5 last:border-b-0 hover:border-primary-soft'>
+              <HugeiconsIcon className='size-4' icon={Plus} />
+              <p className='text-sm'>Neue Akademie erstellen</p>
+            </Link>
+          }
         </ul>
       </section>
 

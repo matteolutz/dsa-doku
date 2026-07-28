@@ -1,4 +1,5 @@
-import { hasPermission, UserRole } from '@repo/db/types';
+import { AcademyMetaSchema, UserRole } from '@repo/db/types';
+import { hasPermission } from '@repo/permissions';
 import { procedure, router } from '..';
 import { requireUser } from '../utils/auth';
 import { fmError } from '../error';
@@ -23,7 +24,7 @@ export const academyRouter = router({
       });
     }
 
-    if (hasPermission(user, 'WRITE_PARTICIPANT_ACADEMIES')) {
+    if (hasPermission(user, 'READ_PARTICIPANT_ACADEMIES')) {
       switch (user.userRole) {
         case UserRole.TN:
         case UserRole.KL:
@@ -86,6 +87,36 @@ export const academyRouter = router({
           courses: {
             orderBy: { courseIdx: 'asc' }
           }
+        }
+      });
+    }),
+  create: procedure
+    .input(
+      z.object({
+        year: z.number(),
+        yearIdx: z.number(),
+        location: z.string(),
+        tnBeginDate: z.coerce.date(),
+        tnEndDate: z.coerce.date(),
+        meta: AcademyMetaSchema
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const user = requireUser(ctx);
+      if (!hasPermission(user, 'WRITE_ALL_ACADEMIES'))
+        throw fmError({
+          type: 'unauthorized',
+          reason: 'insufficient-permissions'
+        }).toTRPCError();
+
+      return ctx.prisma.academy.create({
+        data: {
+          year: input.year,
+          yearIdx: input.yearIdx,
+          location: input.location,
+          tnBeginDate: input.tnBeginDate,
+          tnEndDate: input.tnEndDate,
+          meta: input.meta
         }
       });
     })
