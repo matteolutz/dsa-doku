@@ -3,8 +3,9 @@ import { env } from '../env';
 import { FMError, fmError } from '../error';
 import { prisma } from '@repo/db';
 import type { Request } from 'express';
-import { hasPermission, SafeUser, UserPermissionFlags } from '@repo/db/types';
+import { SafeUser } from '@repo/db/types';
 import { Context } from '../context';
+import { hasPermission, UserPermissionFlags } from '@repo/permissions';
 
 export type JwtTokenType = 'access' | 'refresh';
 type FMJwtPayload = JwtPayload & { tokenType: JwtTokenType };

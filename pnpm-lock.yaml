@@ -261,6 +261,12 @@ importers:
         specifier: ^4.3.6
         version: 4.3.6
 
+  packages/permissions:
+    devDependencies:
+      '@repo/db':
+        specifier: workspace:*
+        version: link:../db
+
   packages/trpc:
     dependencies:
       '@aws-sdk/client-s3':
@@ -272,6 +278,9 @@ importers:
       '@repo/db':
         specifier: workspace:*
         version: link:../db
+      '@repo/permissions':
+        specifier: workspace:*
+        version: link:../permissions
       '@trpc/server':
         specifier: ^11.16.0
         version: 11.16.0(typescript@6.0.3)

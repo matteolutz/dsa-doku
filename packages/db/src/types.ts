@@ -85,11 +85,3 @@ export const AcademyMetaSchema = z.object({
     .optional()
 });
 export type AcademyMeta = z.infer<typeof AcademyMetaSchema>;
-
-export {
-  UserPermissionFlags,
-  hasPermission,
-  getPermissionsForRole,
-  isPermissionFlagSet,
-  type ReadWriteScope
-} from './permissions';

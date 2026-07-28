@@ -1,4 +1,5 @@
-import { hasPermission, UserRole } from '@repo/db/types';
+import { UserRole } from '@repo/db/types';
+import { hasPermission } from "@repo/permissions";
 import { procedure, router } from '..';
 import { requireUser } from '../utils/auth';
 import { fmError } from '../error';
