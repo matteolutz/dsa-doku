@@ -23,7 +23,7 @@ export const academyRouter = router({
       });
     }
 
-    if (hasPermission(user, 'WRITE_PARTICIPANT_ACADEMIES')) {
+    if (hasPermission(user, 'READ_PARTICIPANT_ACADEMIES')) {
       switch (user.userRole) {
         case UserRole.TN:
         case UserRole.KL:
