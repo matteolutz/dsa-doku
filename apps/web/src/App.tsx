@@ -16,6 +16,7 @@ import ViewPage from './pages/View';
 import DokuPage from './pages/Doku';
 import DokuPrintPage from './pages/Doku/print';
 import { NewAcademyPage } from './pages/Academies/New';
+import { EditAcademyPage } from './pages/Academies/Edit';
 
 const AuthRoute: FC<{ navigateTo?: string; element: React.ReactNode }> = ({
   navigateTo,
@@ -102,7 +103,16 @@ const App = () => {
         </Route>
 
         <Route path="academies">
-          <Route path="new" element={<AuthRoute element={<NewAcademyPage />} />} />
+          <Route
+            path="new"
+            element={<AuthRoute element={<NewAcademyPage />} />}
+          />
+
+          {/* Edit route (just match /academies/:id) */}
+          <Route
+            path=":id"
+            element={<AuthRoute element={<EditAcademyPage />} />}
+          />
         </Route>
 
         <Route path="loading" element={<LoadingPage />} />

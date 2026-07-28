@@ -10,7 +10,14 @@ import {
   userRoleToLongString,
   userRoleToString
 } from '@/utils/user';
-import { Location, Logout, Mail, Plus, Shield } from '@hugeicons/core-free-icons';
+import {
+  ChevronRight,
+  Location,
+  Logout,
+  Mail,
+  Plus,
+  Shield
+} from '@hugeicons/core-free-icons';
 import { HugeiconsIcon, type IconSvgElement } from '@hugeicons/react';
 import { hasPermission } from '@repo/permissions';
 import { useQuery } from '@tanstack/react-query';
@@ -24,7 +31,7 @@ const ProfilePage = () => {
   console.log('selectedAcademy', selectedAcademy);
   const academiesQuery = useQuery(trpc.academy.getSelectable.queryOptions());
 
-  const canCreateNewAcademy = hasPermission(user, "WRITE_ALL_ACADEMIES");
+  const canWriteAllAcademies = hasPermission(user, 'WRITE_ALL_ACADEMIES');
 
   return (
     <div className="flex flex-col gap-8 p-8">
@@ -70,21 +77,34 @@ const ProfilePage = () => {
         <ul className="overflow-hidden rounded-2xl border border-border bg-card shadow-card">
           {academiesQuery.data?.map((academy) => (
             <Row
+              key={academy.id}
               className={cn(
                 academy.id === selectedAcademy && 'border border-primary-soft'
               )}
               icon={Location}
               value={formatAcademyName(academy)}
               subtitle={formatAcademyDateRange(academy)}
+              actions={
+                canWriteAllAcademies && (
+                  <Button size="icon" variant="outline" asChild>
+                    <Link to={`/academies/${academy.id}`}>
+                      <HugeiconsIcon icon={ChevronRight} />
+                    </Link>
+                  </Button>
+                )
+              }
             />
           ))}
 
-          {canCreateNewAcademy &&
-            <Link to="/academies/new" className='flex items-center gap-3 border-b border-border px-4 py-3.5 last:border-b-0 hover:border-primary-soft'>
-              <HugeiconsIcon className='size-4' icon={Plus} />
-              <p className='text-sm'>Neue Akademie erstellen</p>
+          {canWriteAllAcademies && (
+            <Link
+              to="/academies/new"
+              className="flex items-center gap-3 border-b border-border px-4 py-3.5 last:border-b-0 hover:border-primary-soft"
+            >
+              <HugeiconsIcon className="size-4" icon={Plus} />
+              <p className="text-sm">Neue Akademie erstellen</p>
             </Link>
-          }
+          )}
         </ul>
       </section>
 
@@ -100,12 +120,14 @@ export default ProfilePage;
 
 const Row = ({
   icon,
+  actions,
   label,
   value,
   subtitle,
   className
 }: {
   icon?: IconSvgElement;
+  actions?: React.ReactNode;
   label?: string;
   value: string;
   subtitle?: string;
@@ -134,6 +156,7 @@ const Row = ({
           <p className="text-xs text-muted-foreground">{subtitle}</p>
         )}
       </div>
+      {actions}
     </li>
   );
 };
