@@ -340,13 +340,13 @@ export const NewAcademyPage = () => {
             )}
 
             <Button
-              disabled={newAcademyForm.formState.isSubmitted}
+              disabled={newAcademyForm.formState.isSubmitting}
               type="submit"
               className="w-full"
               size="lg"
             >
               Erstellen
-              {newAcademyForm.formState.isSubmitted && (
+              {newAcademyForm.formState.isSubmitting && (
                 <Spinner data-icon="inline-start" />
               )}
             </Button>
