@@ -46,6 +46,8 @@ export const sanitizeJournalBlock = (outerHTML: string) =>
       'video',
       'details',
       'summary',
+      'svg',
+      'path',
       ...MATH_ML_TAGS
     ]),
     allowedAttributes: false,
