@@ -7,7 +7,7 @@ import {
 import fs from 'fs/promises';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
-import { splitPages } from '../utils';
+import { makeExecutableName, splitPages } from '../utils';
 
 export const execFileAsync = promisify(execFile);
 
@@ -92,7 +92,7 @@ export const texConversionFn = async (
       message: `Running compilation no. ${i + 1}`
     });
     try {
-      await execFileAsync('lualatex', [textFileName], {
+      await execFileAsync(makeExecutableName('lualatex'), [textFileName], {
         cwd: parentDir
       });
     } catch (e) {

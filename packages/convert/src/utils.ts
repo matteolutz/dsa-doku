@@ -4,6 +4,13 @@ import { execFile } from 'child_process';
 import { promisify } from 'util';
 import path from 'path';
 
+export const makeExecutableName = (executable: string) => {
+  if (process.platform === 'win32') {
+    return executable + '.exe';
+  }
+  return executable;
+};
+
 export const execFileAsync = promisify(execFile);
 
 export const readInputFile = async (
@@ -18,7 +25,8 @@ export const readInputFile = async (
 
 export const splitPages = async (inputFilePath: string, outDir: string) => {
   if (process.platform === 'darwin') {
-    await execFileAsync('gs', [
+    // use gs on macOS
+    await execFileAsync(makeExecutableName('gs'), [
       '-sDEVICE=pdfwrite',
       '-dNOPAUSE',
       '-dBATCH',
@@ -26,9 +34,9 @@ export const splitPages = async (inputFilePath: string, outDir: string) => {
       '-sOutputFile=' + path.join(outDir, 'page-%03d.pdf'),
       inputFilePath
     ]);
-  } else if (process.platform === 'linux') {
-    // use qpdf
-    await execFileAsync('qpdf', [
+  } else if (process.platform === 'linux' || process.platform == 'win32') {
+    // use qpdf on linux and windows
+    await execFileAsync(makeExecutableName('qpdf'), [
       '--split-pages=1',
       inputFilePath,
       path.join(outDir, 'page-%03d.pdf')

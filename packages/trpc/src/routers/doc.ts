@@ -1,5 +1,5 @@
 import z from 'zod';
-import { env, FileSystemService, procedure, router } from '..';
+import { FileSystemService, procedure, router } from '..';
 import { ConversionFnProgress, convertToPdfPages } from '@repo/convert';
 import { DocumentTypeZod } from '../models/doc';
 import { requireUser } from '../utils/auth';

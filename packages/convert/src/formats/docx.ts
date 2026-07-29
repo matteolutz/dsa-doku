@@ -4,7 +4,12 @@ import {
   ConversionInput,
   ConversionOutput
 } from '../types';
-import { execFileAsync, readInputFile, splitPages } from '../utils';
+import {
+  execFileAsync,
+  makeExecutableName,
+  readInputFile,
+  splitPages
+} from '../utils';
 import { DOMParser, XMLSerializer } from 'xmldom';
 import fs from 'fs/promises';
 import path from 'path';
@@ -135,14 +140,21 @@ export const docxConversionFn = async (
     `calling 'soffice' with '--headless --convert-to pdf --outdir ${input.options.outDir} ${newDocxPath}`
   );
 
-  await execFileAsync('soffice', [
-    '--headless',
-    '--convert-to',
-    'pdf',
-    '--outdir',
-    input.options.tempDir,
-    newDocxPath
-  ]);
+  try {
+    await execFileAsync(makeExecutableName('soffice'), [
+      '--headless',
+      '--convert-to',
+      'pdf',
+      '--outdir',
+      input.options.tempDir,
+      newDocxPath
+    ]);
+  } catch (e) {
+    console.log('soffice failed with:', e);
+    throw e;
+  }
+
+  console.log('soffice succeeded');
 
   options?.onProgress?.({
     progress: 0.9,
