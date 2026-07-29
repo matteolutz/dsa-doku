@@ -458,72 +458,75 @@ export const docRouter = router({
             );
             break;
         }
+
+        let inputFile = path.join(docFs.rootDir, input.originalFileName);
+
+        if (path.extname(inputFile) === '.zip') {
+          // a zip file means we have to extract it first
+          const zipOutDir = path.join(docFs.rootDir, 'zip-out');
+
+          const directory = await unzipper.Open.file(inputFile);
+          await directory.extract({ path: zipOutDir });
+
+          // TODO: find a better way to do this
+          const mainTexFile = await searchFileRecursively(
+            zipOutDir,
+            'main.tex'
+          );
+          if (mainTexFile === null)
+            throw fmError({
+              type: 'resource-not-found',
+              resource: 'doc-fs',
+              id: 'main.tex'
+            }).toTRPCError();
+
+          inputFile = mainTexFile;
+        }
+
+        const conversionResult = await convertToPdfPages(
+          {
+            file: { path: inputFile },
+            removePageNumbers: input.containsPageNumbers,
+            options: { tempDir: docFs.tempDir, outDir: docFs.outDir }
+          },
+          {
+            onProgress: (progress) =>
+              docConversionProgressEventEmitter.emit(input.docId, progress)
+          }
+        );
+
+        const { orderIdx } = await docAdded(input.documentType);
+
+        const meta: DocumentMeta = {
+          type: 'file',
+          meta: {
+            originalFileName: input.originalFileName,
+            pages: conversionResult.pages.map(({ path: pagePath }) =>
+              path.basename(pagePath)
+            ),
+            headings: conversionResult.headings
+          }
+        };
+
+        const document = await ctx.prisma.document.create({
+          data: {
+            id: input.docId,
+            title: input.title,
+            category: input.documentType.type,
+            academy: { connect: { id: input.documentType.academyId } },
+            course:
+              input.documentType.type == 'COURSE'
+                ? { connect: { id: input.documentType.courseId } }
+                : undefined,
+            meta,
+            sortOrder: orderIdx
+          }
+        });
+
+        return document;
       } catch (err) {
         await FileSystemService.instance.rmDocumentFs(input.docId);
         throw err;
       }
-
-      let inputFile = path.join(docFs.rootDir, input.originalFileName);
-
-      if (path.extname(inputFile) === '.zip') {
-        // a zip file means we have to extract it first
-        const zipOutDir = path.join(docFs.rootDir, 'zip-out');
-
-        const directory = await unzipper.Open.file(inputFile);
-        await directory.extract({ path: zipOutDir });
-
-        // TODO: find a better way to do this
-        const mainTexFile = await searchFileRecursively(zipOutDir, 'main.tex');
-        if (mainTexFile === null)
-          throw fmError({
-            type: 'resource-not-found',
-            resource: 'doc-fs',
-            id: 'main.tex'
-          }).toTRPCError();
-
-        inputFile = mainTexFile;
-      }
-
-      const conversionResult = await convertToPdfPages(
-        {
-          file: { path: inputFile },
-          removePageNumbers: input.containsPageNumbers,
-          options: { tempDir: docFs.tempDir, outDir: docFs.outDir }
-        },
-        {
-          onProgress: (progress) =>
-            docConversionProgressEventEmitter.emit(input.docId, progress)
-        }
-      );
-
-      const { orderIdx } = await docAdded(input.documentType);
-
-      const meta: DocumentMeta = {
-        type: 'file',
-        meta: {
-          originalFileName: input.originalFileName,
-          pages: conversionResult.pages.map(({ path: pagePath }) =>
-            path.basename(pagePath)
-          ),
-          headings: conversionResult.headings
-        }
-      };
-
-      const document = await ctx.prisma.document.create({
-        data: {
-          id: input.docId,
-          title: input.title,
-          category: input.documentType.type,
-          academy: { connect: { id: input.documentType.academyId } },
-          course:
-            input.documentType.type == 'COURSE'
-              ? { connect: { id: input.documentType.courseId } }
-              : undefined,
-          meta,
-          sortOrder: orderIdx
-        }
-      });
-
-      return document;
     })
 });
