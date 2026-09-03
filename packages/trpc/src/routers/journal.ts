@@ -7,7 +7,7 @@ import { fmError } from '../error';
 import {
   getJournalCategories,
   getJournalPost,
-  getJournalPosts,
+  getAllJournalPosts,
   getJournalUsers
 } from '../utils/journal';
 
@@ -41,7 +41,9 @@ export const journalRouter = router({
           feature: 'aka-journal'
         }).toTRPCError();
 
-      const posts = await getJournalPosts(meta.akaJournal);
+      const posts = await getAllJournalPosts(meta.akaJournal, {
+        publishedOnly: true
+      });
       if (posts.length === 0) return [];
 
       const categories = await getJournalCategories(meta.akaJournal);

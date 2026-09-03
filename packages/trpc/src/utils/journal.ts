@@ -59,9 +59,22 @@ const journalRequest = async (journalConfig: JournalConfig, route: string) => {
   return res.json();
 };
 
-export const getJournalPosts = async (
-  journalConfig: JournalConfig
-): Promise<WpPost[]> => journalRequest(journalConfig, 'wp/v2/posts');
+export const getAllJournalPosts = async (
+  journalConfig: JournalConfig,
+  options?: { publishedOnly?: boolean }
+): Promise<WpPost[]> => {
+  const params = new URLSearchParams();
+
+  if (options?.publishedOnly) {
+    params.set('status', 'publish');
+  }
+
+  params.set('per_page', '100');
+
+  // TODO: handle multiple pages
+
+  return journalRequest(journalConfig, `wp/v2/posts?${params.toString()}`);
+};
 
 export const getJournalPost = async (
   journalConfig: JournalConfig,
