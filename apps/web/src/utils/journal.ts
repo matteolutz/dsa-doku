@@ -87,7 +87,7 @@ export const paginateJournalBlocks = async (
   page.style.width = '100%';
   container.appendChild(page);
 
-  const pageHeightLimit = 240;
+  const pageHeightLimit = 200;
 
   let currentPage = [];
   const pages = [];
