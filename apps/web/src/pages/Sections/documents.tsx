@@ -50,9 +50,14 @@ import { useForm } from 'react-hook-form';
 
 export type AbstractDocumentsProps = {
   documentType: DocumentType;
+
+  debug?: boolean;
 };
 
-const AbstractDocuments: FC<AbstractDocumentsProps> = ({ documentType }) => {
+const AbstractDocuments: FC<AbstractDocumentsProps> = ({
+  documentType,
+  debug = false
+}) => {
   const documentsQuery = useQuery(
     trpc.doc.getAllOfType.queryOptions({
       documentType
@@ -143,6 +148,7 @@ const AbstractDocuments: FC<AbstractDocumentsProps> = ({ documentType }) => {
             isFetching={documentsQuery.isFetching}
             key={doc.id}
             isLastInSection={idx === documentsQuery.data.length - 1}
+            debug={debug}
           />
         ))}
       </ReorderList>
@@ -173,7 +179,15 @@ const Document: FC<{
   isFetching: boolean;
   documentType: DocumentType;
   isLastInSection: boolean;
-}> = ({ doc, deleteDocument, isFetching, documentType, isLastInSection }) => {
+  debug: boolean;
+}> = ({
+  doc,
+  deleteDocument,
+  isFetching,
+  documentType,
+  isLastInSection,
+  debug
+}) => {
   const updateWpPostMutation = useMutation(
     trpc.doc.updateJournal.mutationOptions({
       onSuccess: async () => {
@@ -326,7 +340,7 @@ const Document: FC<{
       </ItemContent>
       <ItemActions className="mr-10">
         {isFetching && <Spinner />}
-        {isOutdated && (
+        {(isOutdated || debug) && (
           <Button
             onClick={updatePost}
             disabled={isUpdating}

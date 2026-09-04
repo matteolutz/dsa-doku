@@ -3,8 +3,12 @@ import { Card } from '@/components/ui/card';
 import { trpc, useSelectedAcademy } from '@/utils/trpc';
 import { useQuery } from '@tanstack/react-query';
 import AbstractDocuments from './documents';
+import { useSearchParam } from 'react-use';
 
 const SectionsPage = () => {
+  const debug = !!useSearchParam('debug');
+  console.log('[SectionsPage] Debug:', debug);
+
   const academyId = useSelectedAcademy();
 
   const academyQuery = useQuery(
@@ -27,12 +31,18 @@ const SectionsPage = () => {
 
         <Card className="w-full p-4 gap-3">
           <TypographyH4>Vorwort der Akademieleitung</TypographyH4>
-          <AbstractDocuments documentType={{ type: 'AL_PREFACE', academyId }} />
+          <AbstractDocuments
+            debug={debug}
+            documentType={{ type: 'AL_PREFACE', academyId }}
+          />
         </Card>
 
         <Card className="w-full p-4 gap-3">
           <TypographyH4>KüMu</TypographyH4>
-          <AbstractDocuments documentType={{ type: 'KUMU', academyId }} />
+          <AbstractDocuments
+            debug={debug}
+            documentType={{ type: 'KUMU', academyId }}
+          />
         </Card>
 
         {academyQuery.data?.courses.map((course) => (
@@ -44,6 +54,7 @@ const SectionsPage = () => {
               {course.title}
             </TypographyH4>
             <AbstractDocuments
+              debug={debug}
               documentType={{ type: 'COURSE', courseId: course.id, academyId }}
             />
           </Card>
@@ -51,7 +62,10 @@ const SectionsPage = () => {
 
         <Card className="w-full p-4 gap-3">
           <TypographyH4>KüA</TypographyH4>
-          <AbstractDocuments documentType={{ type: 'KUA', academyId }} />
+          <AbstractDocuments
+            debug={debug}
+            documentType={{ type: 'KUA', academyId }}
+          />
         </Card>
       </div>
     </div>
