@@ -32,7 +32,7 @@ import type {
   DocumentType
 } from '@repo/db/types';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { useState, type FC } from 'react';
+import { useEffect, useState, type FC } from 'react';
 import { Link } from 'react-router';
 import { getDocumentTypeIcon, getDocumentTypeLabel } from './util';
 import {
@@ -48,6 +48,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useForm } from 'react-hook-form';
 import { htmlToPlainText } from '@/utils/html';
+import { useDebouncedState } from '@/hooks/state';
 
 export type AbstractDocumentsProps = {
   documentType: DocumentType;
@@ -100,18 +101,29 @@ const AbstractDocuments: FC<AbstractDocumentsProps> = ({
     await deleteDocumentMutation.mutateAsync({ docId: doc.id });
   };
 
-  // handle the reordering of documents. the new order is given as
-  // an array of document ids in the new order.
-  const handleDocumentReorder = (newOrder: string[]) => {
+  const [documentOrder, setDocumentOrder] = useDebouncedState<string[] | null>(
+    null,
+    { debounceTime: 500 }
+  );
+
+  useEffect(() => {
+    if (!documentOrder) return;
+
+    console.log('updating document order to:', documentOrder);
+
     const docs = documentsQuery.data;
     if (typeof docs === 'undefined') return;
 
-    reorderDocumentsMutation.mutate({ newOrder, docType: documentType });
+    reorderDocumentsMutation.mutate({
+      newOrder: documentOrder,
+      docType: documentType
+    });
+    console.log('calling reorderDocumentsMutation');
 
     // optimistically update our local state
     const newDocs = [...docs];
     for (const doc of newDocs) {
-      const newSortOrder = newOrder.indexOf(doc.id) ?? doc.sortOrder;
+      const newSortOrder = documentOrder.indexOf(doc.id) ?? doc.sortOrder;
       doc.sortOrder = newSortOrder;
     }
     newDocs.sort((a, b) => a.sortOrder - b.sortOrder);
@@ -120,6 +132,12 @@ const AbstractDocuments: FC<AbstractDocumentsProps> = ({
       trpc.doc.getAllOfType.queryKey({ documentType }),
       () => newDocs
     );
+  }, [documentOrder]);
+
+  // handle the reordering of documents. the new order is given as
+  // an array of document ids in the new order.
+  const handleDocumentReorder = (newOrder: string[]) => {
+    setDocumentOrder(newOrder);
   };
 
   if (typeof documentsQuery.data === 'undefined') return null;
@@ -143,6 +161,7 @@ const AbstractDocuments: FC<AbstractDocumentsProps> = ({
       >
         {documentsQuery.data.map((doc, idx) => (
           <Document
+            data-docId={doc.id}
             doc={doc}
             deleteDocument={deleteDocument}
             documentType={documentType}
