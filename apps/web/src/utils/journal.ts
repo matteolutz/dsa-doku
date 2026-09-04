@@ -201,7 +201,10 @@ export const paginateJournalBlocks = async (
     currentPage.push(block);
   }
 
-  pages.push(currentPage);
+  if (currentPage.length > 0) {
+    console.log('contents of last page:', currentPage);
+    pages.push(currentPage);
+  }
 
   document.body.removeChild(container);
 
