@@ -14,7 +14,7 @@ const useSelectFunction = (
 ) =>
   useCallback(
     (data: Document[]): DokuOrderPage[] => {
-      const order = makeDokuOrder(data, {
+      const order = makeDokuOrder(data, academy!, {
         breakToEvenPageOnNewCategory: false
       });
       console.log('order', order);

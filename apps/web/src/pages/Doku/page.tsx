@@ -86,8 +86,15 @@ const DokuPageRenderer: FC<DokuPageProps> = memo(
         ref={containerRef}
       >
         {renderPage()}
+
+        <div className="absolute top-[4cqw] left-0 w-full text-[1.5cqw] text-muted-foreground justify-between items-center flex px-[8cqw]">
+          <span className="flex-1 text-left"></span>
+          <span className="flex-1 text-center">{page.meta?.headerTitle}</span>
+          <span className="flex-1 text-right"></span>
+        </div>
+
         {typeof absolutePageIndex !== 'undefined' && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[2cqw]">
+          <div className="absolute bottom-[4cqw] left-1/2 -translate-x-1/2 text-[2cqw]">
             {absolutePageIndex + 1}
           </div>
         )}

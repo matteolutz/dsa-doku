@@ -1,3 +1,4 @@
+import { formatDocumentCategory } from '@/utils/academy';
 import type {
   AcademyWithCourses,
   Document,
@@ -16,7 +17,7 @@ export type DokuOrderTocPage = {
   entries: DokuTocRootEntry[];
 };
 
-export type DokuOrderPage =
+export type DokuOrderPage = (
   | {
       type: 'file-page';
       docId: string;
@@ -33,7 +34,12 @@ export type DokuOrderPage =
       type: 'cover';
       academyId: number;
     }
-  | DokuOrderTocPage;
+  | DokuOrderTocPage
+) & { meta?: DokuOrderPageMeta };
+
+export type DokuOrderPageMeta = {
+  headerTitle?: string;
+};
 
 export type DokuOrderObject = {
   type: DocumentTypeWithoutAcademyId;
@@ -49,6 +55,7 @@ export type DokuOrderObject = {
  */
 export const makeDokuOrder = (
   documents: Document[],
+  academy: AcademyWithCourses,
   config: { breakToEvenPageOnNewCategory: boolean }
 ): DokuOrder => {
   const orderPages: DokuOrderPage[] = [];
@@ -77,6 +84,11 @@ export const makeDokuOrder = (
   for (let i = 0; i < documents.length; i++) {
     const document = documents[i];
 
+    const categoryTitle =
+      document.category === 'COURSE'
+        ? `Kurs ${academy.yearIdx}.${academy.courses.find((c) => c.id === document.courseId!)?.courseIdx}`
+        : formatDocumentCategory(document.category);
+
     const docMeta = document.meta as DocumentMeta;
     switch (docMeta.type) {
       case 'file':
@@ -95,7 +107,8 @@ export const makeDokuOrder = (
           orderPages.push({
             type: 'file-page',
             docId: document.id,
-            pageIndex: pageOffset
+            pageIndex: pageOffset,
+            meta: { headerTitle: categoryTitle }
           });
         }
 
@@ -106,7 +119,8 @@ export const makeDokuOrder = (
           const page = docMeta.meta.wpPostPaginatedBlocks[i];
           orderPages.push({
             type: 'wp-page',
-            wpBlocks: page
+            wpBlocks: page,
+            meta: { headerTitle: categoryTitle }
           });
 
           // find any h1's on this page
@@ -144,7 +158,7 @@ export const makeDokuOrder = (
         isDifferentCategoryOrCourse &&
         !isEvenPage
       ) {
-        orderPages.push({ type: 'blank' });
+        orderPages.push({ type: 'blank', meta: {} });
         currentCategoryStartingPageIndex++;
       }
     }
