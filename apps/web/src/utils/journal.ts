@@ -94,7 +94,7 @@ export const paginateJournalBlocks = async (
 
   const getContainerHeightInMm = () => {
     const boundingRect = container.getBoundingClientRect();
-    // we now that the width is 210mm
+    // we know that the width is 210mm
     return (boundingRect.height / boundingRect.width) * 210;
   };
 
@@ -186,9 +186,15 @@ export const paginateJournalBlocks = async (
         throw new Error('a single block exceeds the page height limit');
       }
 
+      // remove the block that overflowed from the page
+      page.removeChild(newBlock);
+
       pages.push(currentPage);
       currentPage = [];
       page.innerHTML = '';
+
+      // append the block to the next page
+      page.innerHTML += newBlock.outerHTML;
     }
 
     block.outerHTML = newBlock.outerHTML;
