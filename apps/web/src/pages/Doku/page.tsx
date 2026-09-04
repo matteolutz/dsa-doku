@@ -238,22 +238,24 @@ const DokuPageToc: FC<{
     <div className="flex flex-col gap-[5cqw] px-[10cqw] py-[12cqw]">
       {entries.map((entry) => (
         <div className="flex flex-col gap-[0.2cqw]">
-          <a
-            href={`#doku-page-${entry.pageIndex}`}
-            onClick={() => context.goToPage(entry.pageIndex)}
-            className="cursor-pointer flex items-end gap-[1cqw]"
-          >
-            <span className="whitespace-pre-line text-[3cqw] font-semibold leading-snug">
-              {entry.name}
-            </span>
-            <span
-              aria-hidden
-              className="mb-1.25 flex-1 border-b border-dotted border-current/60"
-            />
-            <span className="whitespace-nowrap text-[2cqw]">
-              S.&nbsp;{entry.pageIndex + 1}
-            </span>
-          </a>
+          {!entry.isExtension && (
+            <a
+              href={`#doku-page-${entry.pageIndex}`}
+              onClick={() => context.goToPage(entry.pageIndex)}
+              className="cursor-pointer flex items-end gap-[1cqw]"
+            >
+              <span className="whitespace-pre-line text-[3cqw] font-semibold leading-snug">
+                {entry.name}
+              </span>
+              <span
+                aria-hidden
+                className="mb-1.25 flex-1 border-b border-dotted border-current/60"
+              />
+              <span className="whitespace-nowrap text-[2cqw]">
+                S.&nbsp;{entry.pageIndex + 1}
+              </span>
+            </a>
+          )}
           {entry.children.map((childEntry) => (
             <a
               href={`#doku-page-${entry.pageIndex}`}

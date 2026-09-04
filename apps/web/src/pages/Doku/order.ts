@@ -158,11 +158,12 @@ export const makeDokuOrder = (
   return { pages: orderPages, objects: orderObjects };
 };
 
-export type DokuTocRootEntry = DokuTocChildEntry & {
-  children: DokuTocChildEntry[];
+export type DokuTocRootEntry = DokuTocBaseEntry & {
+  isExtension: boolean;
+  children: DokuTocBaseEntry[];
 };
 
-export type DokuTocChildEntry = {
+export type DokuTocBaseEntry = {
   name: string;
 
   /**
@@ -172,7 +173,7 @@ export type DokuTocChildEntry = {
 };
 
 export const increasePageIndex = <
-  T extends DokuTocChildEntry | DokuTocRootEntry
+  T extends DokuTocBaseEntry | DokuTocRootEntry
 >(
   entry: T
 ): T => {
@@ -198,7 +199,7 @@ export const prependTableOfContents = (
   const tocPages: DokuOrderTocPage[] = [];
   let currentTocPageEntries: DokuTocRootEntry[] = [];
 
-  const MAX_ENTRIES_PER_PAGE = 25;
+  const MAX_ENTRIES_PER_PAGE = 30;
 
   const countCurrentEntries = () =>
     currentTocPageEntries.reduce(
@@ -224,7 +225,7 @@ export const prependTableOfContents = (
       config.tocStartingPageIndex + tocPages.length + object.startingPageIndex;
 
     let name: string;
-    let children: DokuTocChildEntry[] = [];
+    let children: DokuTocBaseEntry[] = [];
 
     switch (object.type.type) {
       case 'AL_PREFACE':
@@ -253,16 +254,41 @@ export const prependTableOfContents = (
       }
     }
 
-    currentTocPageEntries.push({
+    let newRootEntry: DokuTocRootEntry = {
+      isExtension: false,
       name,
       pageIndex: absoluteObjectStartingPageIndex,
-      children
-    });
+      children: []
+    };
+    currentTocPageEntries.push(newRootEntry);
 
-    // handle overflow
-    if (countCurrentEntries() >= MAX_ENTRIES_PER_PAGE) {
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
+
+      newRootEntry.children.push(child);
+
+      // check for overflow
+      if (countCurrentEntries() + 1 < MAX_ENTRIES_PER_PAGE) continue;
+
+      // we have overflow, so do a page break
       addTocPage();
+
+      // if we still have child entries left,
+      // we have to break them onto an "extension" element
+      if (i < children.length) {
+        newRootEntry = {
+          ...newRootEntry,
+          children: [],
+          isExtension: true
+        };
+        currentTocPageEntries.push(newRootEntry);
+      }
     }
+
+    // // handle overflow
+    // if (countCurrentEntries() >= MAX_ENTRIES_PER_PAGE) {
+    //   addTocPage();
+    // }
   }
 
   addTocPage();
