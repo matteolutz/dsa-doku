@@ -47,6 +47,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { useForm } from 'react-hook-form';
+import { htmlToPlainText } from '@/utils/html';
 
 export type AbstractDocumentsProps = {
   documentType: DocumentType;
@@ -225,7 +226,7 @@ const Document: FC<{
 
     await updateWpPostMutation.mutateAsync({
       docId: doc.id,
-      title: post.title.rendered,
+      title: htmlToPlainText(post.title.rendered),
       wpPostId: post.id,
       wpPostLastModified: post.modified,
       wpBlocks: pages,

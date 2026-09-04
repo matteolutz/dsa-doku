@@ -18,6 +18,7 @@ import { SanitizeHtml } from '@/components/fm/sanitizeHtml';
 import { Spinner } from '@/components/ui/spinner';
 import { useNavigate } from 'react-router';
 import { fetchJournalPostBlocks } from '@/utils/journal';
+import { htmlToPlainText } from '@/utils/html';
 
 const htmlSanitationOptions = {
   allowedTags: ['p', 'b', 'i', 'em', 'strong', 'a'],
@@ -71,7 +72,7 @@ export const DocCreateJournalForm: FC<DocJournalCreationProps> = ({
       wpPostLastModified: post.modified,
       wpBlocks: pages,
 
-      title: post.title.rendered,
+      title: htmlToPlainText(post.title.rendered),
 
       documentType: docType
     });
