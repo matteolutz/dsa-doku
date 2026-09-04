@@ -213,7 +213,7 @@ export const prependTableOfContents = (
   const tocPages: DokuOrderTocPage[] = [];
   let currentTocPageEntries: DokuTocRootEntry[] = [];
 
-  const MAX_ENTRIES_PER_PAGE = 30;
+  const MAX_ENTRIES_PER_PAGE = 35;
 
   const countCurrentEntries = () =>
     currentTocPageEntries.reduce(
