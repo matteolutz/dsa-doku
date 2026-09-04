@@ -2,6 +2,7 @@ import type { WpBlock } from '@repo/db/types';
 import sanitize from 'sanitize-html';
 import { trpcClient } from './trpc';
 import { JOURNAL_AUDIO_PLAYER_CQW_HEIGHT } from '@/pages/Doku/wp/audio';
+import { htmlToPlainText } from './html';
 
 const MATH_ML_TAGS = [
   'annotation-xml',
@@ -214,7 +215,11 @@ export const paginateJournalBlocks = async (
 export const fetchJournalPostBlocks = async (
   postId: number,
   academyId: number,
-  options?: { insertDocumentTitle?: boolean; insertAuthors?: boolean }
+  options?: {
+    insertDocumentTitle?: boolean;
+    insertAuthors?: boolean;
+    collectHeadings?: boolean;
+  }
 ) => {
   const { post, wpBaseUrl } = await trpcClient.journal.getPost.query({
     wpPostId: postId,
@@ -250,12 +255,15 @@ export const fetchJournalPostBlocks = async (
       console.log('dirty', child.outerHTML, 'sanitized', cleanHtml);
 
       let heading = undefined;
-      const headingIdx = headings.indexOf(child.tagName.toLocaleLowerCase());
-      if (headingIdx !== -1) {
-        heading = {
-          text: child.textContent ?? '',
-          level: headingIdx + 1
-        };
+
+      if (options?.collectHeadings) {
+        const headingIdx = headings.indexOf(child.tagName.toLocaleLowerCase());
+        if (headingIdx !== -1) {
+          heading = {
+            text: child.textContent ?? '',
+            level: headingIdx + 1
+          };
+        }
       }
 
       return {
@@ -292,7 +300,7 @@ export const fetchJournalPostBlocks = async (
     const titleBlock = {
       type: 'heading',
       outerHTML: `<h1 class="journal-wp-block-heading">${title}</h1>`,
-      heading: { text: title, level: 1 }
+      heading: { text: htmlToPlainText(title), level: 1 }
     };
     postBlocks.unshift(titleBlock);
   }

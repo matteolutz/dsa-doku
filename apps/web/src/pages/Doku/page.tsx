@@ -1,4 +1,4 @@
-import { memo, useEffect, useState, type FC } from 'react';
+import { memo, useEffect, useRef, useState, type FC } from 'react';
 import type { DokuOrderPage, DokuTocRootEntry } from './order';
 import { useQuery } from '@tanstack/react-query';
 import { trpc } from '@/utils/trpc';
@@ -18,6 +18,7 @@ import type { AcademyMeta, WpBlock } from '@repo/db/types';
 import { JournalAudioPlayer } from './wp/audio';
 import { JournalVideoPlayer } from './wp/video';
 import { cn } from '@/lib/utils';
+import { awaitImageElement } from '@/utils/html';
 
 export type DokuPageContext = {
   goToPage: (page: number) => void;
@@ -93,7 +94,7 @@ const DokuPageRenderer: FC<DokuPageProps> = memo(
           <span className="flex-1 text-right"></span>
         </div>
 
-        {typeof absolutePageIndex !== 'undefined' && (
+        {typeof absolutePageIndex !== 'undefined' && absolutePageIndex >= 2 && (
           <div className="absolute bottom-[4cqw] left-1/2 -translate-x-1/2 text-[2cqw]">
             {absolutePageIndex + 1}
           </div>
@@ -122,12 +123,40 @@ const DokuWpPage: FC<{
   wpBlocks: WpBlock[];
   onLoad?: () => void;
 }> = ({ wpBlocks, onLoad }) => {
+  const pageContainerRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    if (onLoad) onLoad();
+    const doLoad = async () => {
+      if (!onLoad) return;
+      if (!pageContainerRef.current) return;
+
+      const images = Array.from(
+        pageContainerRef.current.querySelectorAll('img')
+      );
+      if (images.length === 0) {
+        onLoad();
+        return;
+      }
+
+      console.log('page images', images);
+      await Promise.all(
+        images.map((img) =>
+          awaitImageElement(img, { overrideLoadingMode: 'eager' })
+        )
+      );
+      console.log("and they've loaded..");
+
+      onLoad();
+    };
+
+    void doLoad();
   }, [wpBlocks, onLoad]);
 
   return (
-    <div className="size-full px-[10cqw] py-[10cqw] overflow-hidden journal-wp-page">
+    <div
+      ref={pageContainerRef}
+      className="size-full px-[10cqw] py-[10cqw] overflow-hidden journal-wp-page"
+    >
       {wpBlocks.map((block, index) =>
         block.media ? (
           <DokuWpMedia media={block.media} />
