@@ -21,7 +21,7 @@ export const formatDocumentCategory = (category: DocumentCategory) => {
     case 'COURSE':
       return 'Kurs';
     case 'AL_PREFACE':
-      return 'AL Vorwort';
+      return 'Vorwort der Akademieleitung';
     case 'KUA':
       return 'Kursübergreifende Aktivitäten';
     case 'KUMU':
