@@ -162,14 +162,21 @@ const DokuPage = () => {
           <HugeiconsIcon icon={ChevronLeft} /> Vorige Seite
         </Button>
         <div className="flex items-center gap-1.5">
-          {Array.from({ length: numSheets }).map((_, i) => (
-            <span
-              key={i}
-              className={`h-1.5 rounded-full transition-all ${
-                i === currentSheet ? 'w-6 bg-primary' : 'w-1.5 bg-border'
-              }`}
-            />
-          ))}
+          {numSheets > 10 ? (
+            <div>
+              <span>{currentSheet + 1}</span>
+              <span className="text-muted-foreground">/{numSheets}</span>
+            </div>
+          ) : (
+            Array.from({ length: numSheets }).map((_, i) => (
+              <span
+                key={i}
+                className={`h-1.5 rounded-full transition-all ${
+                  i === currentSheet ? 'w-6 bg-primary' : 'w-1.5 bg-border'
+                }`}
+              />
+            ))
+          )}
         </div>
         <Button disabled={currentSheet === numSheets - 1} onClick={nextSheet}>
           <HugeiconsIcon icon={ChevronRight} /> Nächste Seite
